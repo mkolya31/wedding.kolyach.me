@@ -7,7 +7,9 @@ import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 const CONFIG = {
   // Имена
   groomName: "Максим",
+  groomName2: "Максима",
   brideName: "Анфиса",
+  brideName2: "Анфисы",
 
   // Дата свадьбы (YYYY-MM-DD)
   weddingDate: "2026-08-08T14:00:00",
@@ -206,7 +208,7 @@ export default function App() {
           className="text-5xl font-caveat font-bold text-foreground text-center mt-4 mb-2"
           style={{ lineHeight: 1.25 }}
         >
-          {CONFIG.groomName}а и {CONFIG.brideName}ы
+          {CONFIG.groomName2} и {CONFIG.brideName2}
         </h1>
 
         <Divider />
