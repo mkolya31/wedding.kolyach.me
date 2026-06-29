@@ -441,6 +441,34 @@ export default function App() {
         <p className="font-caveat text-xl text-center text-foreground opacity-80 mb-6">
           Пишите нам в Telegram — ответим с радостью!
         </p>
+
+        {/* Общий чат */}
+        <a
+            href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 w-full mb-4"
+            style={{
+              background: "#FDF5E6",
+              border: "none",
+              borderRadius: 20,
+              padding: "18px 24px",
+              textDecoration: "none",
+              transform: "rotate(0.5deg)",
+              boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
+            }}
+        >
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none" />
+            <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
+                  stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+          </svg>
+          <div>
+            <span className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
+            <span className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
+          </div>
+        </a>
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {[
             { name: CONFIG.groomName, handle: CONFIG.telegram.groomHandle, rotate: "-1deg" },
@@ -472,33 +500,6 @@ export default function App() {
             </a>
           ))}
         </div>
-
-        {/* Общий чат */}
-        <a
-          href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-4 w-full mt-4"
-          style={{
-            background: "#FDF5E6",
-            border: "none",
-            borderRadius: 20,
-            padding: "18px 24px",
-            textDecoration: "none",
-            transform: "rotate(0.5deg)",
-            boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-          }}
-        >
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none" />
-            <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
-              stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-          </svg>
-          <div>
-            <span className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
-            <span className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
-          </div>
-        </a>
       </Section>
 
       <WaveDivider flip />
