@@ -7,7 +7,9 @@ import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 const CONFIG = {
   // Имена
   groomName: "Максим",
+  groomName2: "Максима",
   brideName: "Анфиса",
+  brideName2: "Анфисы",
 
   // Дата свадьбы (YYYY-MM-DD)
   weddingDate: "2026-08-08T14:00:00",
@@ -189,15 +191,15 @@ export default function App() {
       className="min-h-screen w-full relative overflow-x-hidden"
       style={{ background: "#F9EDD9", fontFamily: "'Montserrat', sans-serif" }}
     >
-      <DoodleBackground />
       <div className="relative" style={{ zIndex: 1 }}>
+      <DoodleBackground />
       {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
       <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
         <Garland text="ЭТО ЧТО СВАДЬБА?" />
 
         <p
           className="text-foreground opacity-60"
-          style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, transform: "rotate(-2deg)", marginTop: -8 }}
+          style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, transform: "rotate(-2deg)", marginTop: 8 }}
         >
           у кого?
         </p>
@@ -206,7 +208,7 @@ export default function App() {
           className="text-5xl font-caveat font-bold text-foreground text-center mt-4 mb-2"
           style={{ lineHeight: 1.25 }}
         >
-          {CONFIG.groomName}а и {CONFIG.brideName}ы
+          {CONFIG.groomName2} и {CONFIG.brideName2}
         </h1>
 
         <Divider />
@@ -439,6 +441,34 @@ export default function App() {
         <p className="font-caveat text-xl text-center text-foreground opacity-80 mb-6">
           Пишите нам в Telegram — ответим с радостью!
         </p>
+
+        {/* Общий чат */}
+        <a
+            href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 w-full mb-4"
+            style={{
+              background: "#FDF5E6",
+              border: "none",
+              borderRadius: 20,
+              padding: "18px 24px",
+              textDecoration: "none",
+              transform: "rotate(0.5deg)",
+              boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
+            }}
+        >
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none" />
+            <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
+                  stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+          </svg>
+          <div>
+            <span className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
+            <span className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
+          </div>
+        </a>
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {[
             { name: CONFIG.groomName, handle: CONFIG.telegram.groomHandle, rotate: "-1deg" },
@@ -470,33 +500,6 @@ export default function App() {
             </a>
           ))}
         </div>
-
-        {/* Общий чат */}
-        <a
-          href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-4 w-full mt-4"
-          style={{
-            background: "#FDF5E6",
-            border: "none",
-            borderRadius: 20,
-            padding: "18px 24px",
-            textDecoration: "none",
-            transform: "rotate(0.5deg)",
-            boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-          }}
-        >
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none" />
-            <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
-              stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-          </svg>
-          <div>
-            <span className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
-            <span className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
-          </div>
-        </a>
       </Section>
 
       <WaveDivider flip />
@@ -636,7 +639,6 @@ export default function App() {
       {/* ── 6. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
       <section
         className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
-        style={{ background: "#F9EDD9" }}
       >
         {/* Top text */}
         <div className="self-start flex items-start gap-2 mb-2">
@@ -861,7 +863,7 @@ function DoodleBackground() {
   ];
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
       {items.map((item, i) => (
         <div
           key={i}
