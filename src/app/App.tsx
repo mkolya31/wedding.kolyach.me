@@ -191,15 +191,15 @@ export default function App() {
       className="min-h-screen w-full relative overflow-x-hidden"
       style={{ background: "#F9EDD9", fontFamily: "'Montserrat', sans-serif" }}
     >
-      <DoodleBackground />
       <div className="relative" style={{ zIndex: 1 }}>
+      <DoodleBackground />
       {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
       <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
         <Garland text="ЭТО ЧТО СВАДЬБА?" />
 
         <p
           className="text-foreground opacity-60"
-          style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, transform: "rotate(-2deg)", marginTop: -8 }}
+          style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, transform: "rotate(-2deg)", marginTop: 8 }}
         >
           у кого?
         </p>
@@ -639,7 +639,6 @@ export default function App() {
       {/* ── 6. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
       <section
         className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
-        style={{ background: "#F9EDD9" }}
       >
         {/* Top text */}
         <div className="self-start flex items-start gap-2 mb-2">
@@ -864,7 +863,7 @@ function DoodleBackground() {
   ];
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
       {items.map((item, i) => (
         <div
           key={i}
