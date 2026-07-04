@@ -194,12 +194,6 @@ export default function App() {
         setForm((f) => ({...f, submitted: true}));
     };
 
-    const weddingDateFormatted = new Date(CONFIG.weddingDate).toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-
     return (
         <div
             className="min-h-screen w-full relative overflow-x-hidden"
