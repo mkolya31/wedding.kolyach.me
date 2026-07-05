@@ -1,8 +1,9 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import {ImageWithFallback} from "@/app/components/figma/ImageWithFallback";
 import {submitRsvp} from "@/api/rsvp";
 import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
+import gardenTexture from "@/imports/garden-texture.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -165,12 +166,14 @@ type FormData = {
     alcohol: string[];
     mainCourse: string;
     transfer: string;
+    website: string;
     submitted: boolean;
 };
 
 export default function App() {
     const zagsCountdown = useCountdown(CONFIG.zagsDate);
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
+    const backgroundRef = useRef<HTMLDivElement | null>(null);
 
     const [form, setForm] = useState<FormData>({
         name: "",
@@ -178,10 +181,34 @@ export default function App() {
         alcohol: [],
         mainCourse: "",
         transfer: "",
+        website: "",
         submitted: false,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+
+    useEffect(() => {
+        let frame = 0;
+
+        const updateBackgroundTransform = () => {
+            frame = 0;
+            if (!backgroundRef.current) return;
+            backgroundRef.current.style.transform = `translate3d(0, ${window.scrollY * 0.42}px, 0)`;
+        };
+
+        const handleScroll = () => {
+            if (frame) return;
+            frame = window.requestAnimationFrame(updateBackgroundTransform);
+        };
+
+        updateBackgroundTransform();
+        window.addEventListener("scroll", handleScroll, {passive: true});
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            if (frame) window.cancelAnimationFrame(frame);
+        };
+    }, []);
 
     const handleAlcohol = (val: string) => {
         setForm((f) => ({
@@ -192,10 +219,12 @@ export default function App() {
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (isSubmitting) return;
+
+        const website = String(new window.FormData(e.currentTarget).get("website") ?? "");
 
         setIsSubmitting(true);
         setSubmitError("");
@@ -207,6 +236,7 @@ export default function App() {
                 alcohol: form.alcohol.join(", "),
                 meal: form.mainCourse,
                 need_transfer: form.transfer,
+                website,
             });
             setForm((f) => ({...f, submitted: true}));
         } catch {
@@ -218,11 +248,26 @@ export default function App() {
 
     return (
         <div
-            className="min-h-screen w-full relative overflow-x-hidden"
-            style={{background: "#F9EDD9", fontFamily: "'Montserrat', sans-serif"}}
+            className="min-h-screen w-full relative overflow-hidden"
+            style={{
+                backgroundColor: "#F9EDD9",
+                fontFamily: "'Montserrat', sans-serif",
+                isolation: "isolate",
+            }}
         >
+            <div
+                ref={backgroundRef}
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    zIndex: 0,
+                    backgroundImage: `url(${gardenTexture})`,
+                    backgroundPosition: "top center",
+                    backgroundRepeat: "repeat",
+                    backgroundSize: "min(1254px, 100vw) auto",
+                    willChange: "transform",
+                }}
+            />
             <div className="relative" style={{zIndex: 1}}>
-                <DoodleBackground/>
                 {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
                 <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
                     <Garland text="ЭТО ЧТО СВАДЬБА?"/>
@@ -585,12 +630,39 @@ export default function App() {
                                 boxShadow: "4px 4px 0 rgba(45,43,110,0.12)",
                             }}
                         >
+                            <div
+                                aria-hidden="true"
+                                style={{
+                                    position: "absolute",
+                                    width: 1,
+                                    height: 1,
+                                    margin: -1,
+                                    padding: 0,
+                                    border: 0,
+                                    overflow: "hidden",
+                                    clip: "rect(0 0 0 0)",
+                                    clipPath: "inset(50%)",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                <label htmlFor="website">Website</label>
+                                <input
+                                    id="website"
+                                    name="website"
+                                    type="text"
+                                    value={form.website}
+                                    onChange={(e) => setForm((f) => ({...f, website: e.target.value}))}
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                />
+                            </div>
+
                             {/* Name */}
                             <FormField label="Ваше имя и фамилия">
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Иванов Иван"
+                                    placeholder="Фемистоклюс Манилов"
                                     value={form.name}
                                     onChange={(e) => setForm((f) => ({...f, name: e.target.value}))}
                                     className="w-full font-caveat text-xl text-foreground"
@@ -958,124 +1030,6 @@ function CheckboxOption({
     );
 }
 
-function DoodleBackground() {
-    const items = [
-        // hearts
-        {x: 3, y: 4, type: "heart", size: 18, rot: 15, op: 0.18},
-        {x: 91, y: 7, type: "heart", size: 14, rot: -10, op: 0.15},
-        {x: 7, y: 13, type: "heart", size: 22, rot: 5, op: 0.12},
-        {x: 85, y: 18, type: "heart", size: 16, rot: 20, op: 0.17},
-        {x: 2, y: 26, type: "heart", size: 12, rot: -8, op: 0.13},
-        {x: 94, y: 32, type: "heart", size: 20, rot: 12, op: 0.14},
-        {x: 5, y: 41, type: "heart", size: 15, rot: -15, op: 0.16},
-        {x: 88, y: 47, type: "heart", size: 24, rot: 8, op: 0.12},
-        {x: 3, y: 55, type: "heart", size: 13, rot: -5, op: 0.18},
-        {x: 92, y: 61, type: "heart", size: 18, rot: 18, op: 0.15},
-        {x: 6, y: 70, type: "heart", size: 20, rot: -12, op: 0.13},
-        {x: 87, y: 76, type: "heart", size: 14, rot: 6, op: 0.17},
-        {x: 4, y: 84, type: "heart", size: 16, rot: 10, op: 0.14},
-        {x: 90, y: 90, type: "heart", size: 22, rot: -7, op: 0.12},
-        // stars
-        {x: 12, y: 8, type: "star", size: 16, rot: 20, op: 0.15},
-        {x: 80, y: 12, type: "star", size: 12, rot: -15, op: 0.13},
-        {x: 15, y: 22, type: "star", size: 20, rot: 5, op: 0.12},
-        {x: 78, y: 29, type: "star", size: 14, rot: 30, op: 0.16},
-        {x: 10, y: 38, type: "star", size: 18, rot: -10, op: 0.14},
-        {x: 82, y: 44, type: "star", size: 16, rot: 15, op: 0.13},
-        {x: 13, y: 52, type: "star", size: 12, rot: -20, op: 0.15},
-        {x: 79, y: 58, type: "star", size: 22, rot: 8, op: 0.12},
-        {x: 11, y: 67, type: "star", size: 15, rot: 25, op: 0.16},
-        {x: 83, y: 73, type: "star", size: 13, rot: -5, op: 0.14},
-        {x: 9, y: 81, type: "star", size: 18, rot: 12, op: 0.13},
-        {x: 81, y: 87, type: "star", size: 16, rot: -18, op: 0.15},
-        // balloons
-        {x: 20, y: 5, type: "balloon", size: 22, rot: -5, op: 0.14},
-        {x: 72, y: 16, type: "balloon", size: 18, rot: 8, op: 0.12},
-        {x: 22, y: 33, type: "balloon", size: 24, rot: -10, op: 0.13},
-        {x: 70, y: 42, type: "balloon", size: 20, rot: 5, op: 0.15},
-        {x: 18, y: 60, type: "balloon", size: 22, rot: -8, op: 0.12},
-        {x: 74, y: 69, type: "balloon", size: 18, rot: 12, op: 0.14},
-        {x: 21, y: 78, type: "balloon", size: 24, rot: -4, op: 0.13},
-        {x: 71, y: 85, type: "balloon", size: 20, rot: 7, op: 0.12},
-        // flowers
-        {x: 30, y: 10, type: "flower", size: 20, rot: 10, op: 0.13},
-        {x: 62, y: 21, type: "flower", size: 16, rot: -8, op: 0.15},
-        {x: 28, y: 48, type: "flower", size: 22, rot: 15, op: 0.12},
-        {x: 64, y: 55, type: "flower", size: 18, rot: -12, op: 0.14},
-        {x: 32, y: 73, type: "flower", size: 20, rot: 8, op: 0.13},
-        {x: 60, y: 82, type: "flower", size: 16, rot: -5, op: 0.15},
-        // rings
-        {x: 42, y: 3, type: "ring", size: 18, rot: 20, op: 0.13},
-        {x: 50, y: 15, type: "ring", size: 14, rot: -15, op: 0.14},
-        {x: 40, y: 36, type: "ring", size: 20, rot: 10, op: 0.12},
-        {x: 52, y: 63, type: "ring", size: 16, rot: -8, op: 0.15},
-        {x: 44, y: 88, type: "ring", size: 18, rot: 5, op: 0.13},
-    ];
-
-    return (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{zIndex: -1}}>
-            {items.map((item, i) => (
-                <div
-                    key={i}
-                    style={{
-                        position: "absolute",
-                        left: `${item.x}%`,
-                        top: `${item.y}%`,
-                        opacity: item.op,
-                        transform: `rotate(${item.rot}deg)`,
-                    }}
-                >
-                    {item.type === "heart" && (
-                        <svg width={item.size} height={item.size} viewBox="0 0 24 22" fill="none">
-                            <path d="M12 20S2 13 2 7a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 6-10 13-10 13z"
-                                  stroke="#234968" strokeWidth="1.8" strokeLinejoin="round"/>
-                        </svg>
-                    )}
-                    {item.type === "star" && (
-                        <svg width={item.size} height={item.size} viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"
-                                  stroke="#234968" strokeWidth="1.5" strokeLinejoin="round"/>
-                        </svg>
-                    )}
-                    {item.type === "balloon" && (
-                        <svg width={item.size} height={Math.round(item.size * 1.4)} viewBox="0 0 22 30" fill="none">
-                            <ellipse cx="11" cy="11" rx="8" ry="10" stroke="#234968" strokeWidth="1.5"/>
-                            <path d="M11 21 Q9 24 11 27 Q13 24 11 21" stroke="#234968" strokeWidth="1.5"
-                                  strokeLinecap="round"/>
-                            <path d="M7 21 Q5 22 4 25" stroke="#234968" strokeWidth="1" strokeLinecap="round"
-                                  opacity="0.5"/>
-                        </svg>
-                    )}
-                    {item.type === "flower" && (
-                        <svg width={item.size} height={item.size} viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="3" stroke="#234968" strokeWidth="1.5"/>
-                            <ellipse cx="12" cy="5" rx="2.5" ry="3.5" stroke="#234968" strokeWidth="1.2"/>
-                            <ellipse cx="12" cy="19" rx="2.5" ry="3.5" stroke="#234968" strokeWidth="1.2"/>
-                            <ellipse cx="5" cy="12" rx="3.5" ry="2.5" stroke="#234968" strokeWidth="1.2"/>
-                            <ellipse cx="19" cy="12" rx="3.5" ry="2.5" stroke="#234968" strokeWidth="1.2"/>
-                            <ellipse cx="7" cy="7" rx="2.2" ry="3" stroke="#234968" strokeWidth="1.1"
-                                     transform="rotate(-45 7 7)"/>
-                            <ellipse cx="17" cy="7" rx="2.2" ry="3" stroke="#234968" strokeWidth="1.1"
-                                     transform="rotate(45 17 7)"/>
-                            <ellipse cx="7" cy="17" rx="2.2" ry="3" stroke="#234968" strokeWidth="1.1"
-                                     transform="rotate(45 7 17)"/>
-                            <ellipse cx="17" cy="17" rx="2.2" ry="3" stroke="#234968" strokeWidth="1.1"
-                                     transform="rotate(-45 17 17)"/>
-                        </svg>
-                    )}
-                    {item.type === "ring" && (
-                        <svg width={item.size} height={item.size} viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="7" stroke="#234968" strokeWidth="1.5"/>
-                            <circle cx="12" cy="12" r="4" stroke="#234968" strokeWidth="1"/>
-                            <path d="M9 7 Q12 5 15 7" stroke="#234968" strokeWidth="1.2" strokeLinecap="round"/>
-                        </svg>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-}
-
 function WaveDivider({flip = false}: { flip?: boolean }) {
     return (
         <svg
@@ -1086,8 +1040,8 @@ function WaveDivider({flip = false}: { flip?: boolean }) {
         >
             <path
                 d="M0,15 Q50,0 100,15 Q150,30 200,15 Q250,0 300,15 Q350,30 400,15 L400,30 L0,30 Z"
-                fill="#234968"
-                opacity="0.07"
+                fill="#ffffff"
+                opacity="1"
             />
         </svg>
     );
