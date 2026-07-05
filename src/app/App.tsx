@@ -630,12 +630,39 @@ export default function App() {
                                 boxShadow: "4px 4px 0 rgba(45,43,110,0.12)",
                             }}
                         >
+                            <div
+                                aria-hidden="true"
+                                style={{
+                                    position: "absolute",
+                                    width: 1,
+                                    height: 1,
+                                    margin: -1,
+                                    padding: 0,
+                                    border: 0,
+                                    overflow: "hidden",
+                                    clip: "rect(0 0 0 0)",
+                                    clipPath: "inset(50%)",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                <label htmlFor="website">Website</label>
+                                <input
+                                    id="website"
+                                    name="website"
+                                    type="text"
+                                    value={form.website}
+                                    onChange={(e) => setForm((f) => ({...f, website: e.target.value}))}
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                />
+                            </div>
+
                             {/* Name */}
                             <FormField label="Ваше имя и фамилия">
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Иванов Иван"
+                                    placeholder="Фемистоклюс Манилов"
                                     value={form.name}
                                     onChange={(e) => setForm((f) => ({...f, name: e.target.value}))}
                                     className="w-full font-caveat text-xl text-foreground"
