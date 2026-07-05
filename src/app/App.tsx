@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import {ImageWithFallback} from "@/app/components/figma/ImageWithFallback";
+import {submitRsvp} from "@/api/rsvp";
 import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 
@@ -179,6 +180,8 @@ export default function App() {
         transfer: "",
         submitted: false,
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
     const handleAlcohol = (val: string) => {
         setForm((f) => ({
@@ -189,9 +192,28 @@ export default function App() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setForm((f) => ({...f, submitted: true}));
+
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        setSubmitError("");
+
+        try {
+            await submitRsvp({
+                name: form.name,
+                i_will_come: form.attending,
+                alcohol: form.alcohol.join(", "),
+                meal: form.mainCourse,
+                need_transfer: form.transfer,
+            });
+            setForm((f) => ({...f, submitted: true}));
+        } catch {
+            setSubmitError("Не удалось отправить анкету. Попробуйте еще раз.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -634,20 +656,29 @@ export default function App() {
 
                             <button
                                 type="submit"
+                                disabled={isSubmitting}
                                 className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
                                     borderRadius: 50,
-                                    cursor: "pointer",
+                                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                                    opacity: isSubmitting ? 0.75 : 1,
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
                                     transition: "transform 0.1s",
                                 }}
-                                onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.97)")}
+                                onMouseDown={(e) => {
+                                    if (!isSubmitting) e.currentTarget.style.transform = "scale(0.97)";
+                                }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
-                                Отправить анкету
+                                Отправить ответы
                             </button>
+                            {submitError ? (
+                                <p className="font-caveat text-xl text-center text-red-700 mt-4">
+                                    {submitError}
+                                </p>
+                            ) : null}
                         </form>
                     )}
                 </Section>
