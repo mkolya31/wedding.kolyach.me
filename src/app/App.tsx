@@ -30,7 +30,7 @@ const CONFIG = {
             date: "08.08.2026",
             time: "14:00",
             title: "Свадебный банкет",
-            place: "Ресторан «Ботаника», Музей-заповедник Архангельское",
+            place: "Ресторан «Ботаника», Музей-заповедник \"Архангельское\"",
             mapsLink: "https://yandex.ru/maps/-/CTUw42-r"
         }
     ],
@@ -466,7 +466,6 @@ export default function App() {
                         {CONFIG.schedule.map((item, i) => (
                             <div
                                 key={i}
-                                className="flex gap-4 items-start"
                                 style={{
                                     background: "#FDF5E6",
                                     border: "none",
@@ -476,14 +475,13 @@ export default function App() {
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
                                 }}
                             >
-              <span
-                  className="font-caveat font-bold text-xl shrink-0 flex flex-col items-start"
-                  style={{color: "#5A8BB4", minWidth: 64}}
-              >
-                <span key={i} style={{lineHeight: 1.3}}>{item.date}</span>
-                <span key={i} style={{lineHeight: 1.3, color: "#B43A32"}}>{item.time}</span>
-              </span>
-                                <div>
+                                <p
+                                    className="font-caveat font-bold text-xl"
+                                    style={{color: "#5A8BB4", lineHeight: 1.2}}
+                                >
+                                    {item.date} <span style={{color: "#B43A32"}}>{item.time}</span>
+                                </p>
+                                <div className="mt-3">
                                     <p className="font-caveat font-bold text-lg text-foreground leading-tight">
                                         {item.title}
                                     </p>
@@ -497,7 +495,7 @@ export default function App() {
                                             href={item.mapsLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-block mt-2 px-4 py-2 text-sm font-semibold text-white"
+                                            className="inline-block mt-4 px-4 py-2 text-sm font-semibold text-white"
                                             style={{background: "#5A8BB4", borderRadius: 50, textDecoration: "none"}}
                                         >
                                             Открыть на карте
