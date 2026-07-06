@@ -4,6 +4,7 @@ import {submitRsvp} from "@/api/rsvp";
 import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
+import toyAirplane from "@/imports/toy-airplane.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -148,6 +149,157 @@ const SectionTitle = ({children}: { children: React.ReactNode }) => (
     </h2>
 );
 
+const FlightBanner = ({
+                          children,
+                          rotate = -1,
+                          maxWidth = 390,
+                          padding = "13px 18px 14px",
+                      }: {
+    children: React.ReactNode;
+    rotate?: number;
+    maxWidth?: number;
+    padding?: string;
+}) => (
+    <div
+        className="relative text-center"
+        style={{
+            width: `min(100%, ${maxWidth}px)`,
+            background: "#FDF5E6",
+            border: "2px solid rgba(140, 109, 86, 0.42)",
+            borderRadius: 12,
+            padding,
+            boxShadow: "5px 7px 0 rgba(45,43,110,0.12), 0 10px 22px rgba(35,73,104,0.12)",
+            transform: `rotate(${rotate}deg)`,
+        }}
+    >
+        <span
+            aria-hidden="true"
+            style={{
+                position: "absolute",
+                left: -16,
+                top: 13,
+                width: 24,
+                height: 34,
+                background: "#EACDB8",
+                border: "2px solid rgba(140, 109, 86, 0.32)",
+                borderRight: "none",
+                borderRadius: "8px 0 0 8px",
+                transform: "skewY(8deg)",
+                zIndex: -1,
+            }}
+        />
+        <span
+            aria-hidden="true"
+            style={{
+                position: "absolute",
+                right: -16,
+                top: 13,
+                width: 24,
+                height: 34,
+                background: "#EACDB8",
+                border: "2px solid rgba(140, 109, 86, 0.32)",
+                borderLeft: "none",
+                borderRadius: "0 8px 8px 0",
+                transform: "skewY(-8deg)",
+                zIndex: -1,
+            }}
+        />
+        {children}
+    </div>
+);
+
+const FlightCable = ({
+                         height,
+                         viewBox,
+                         path,
+                         knotY,
+                         style,
+                     }: {
+    height: number;
+    viewBox: string;
+    path: string;
+    knotY: number;
+    style?: React.CSSProperties;
+}) => (
+    <svg
+        width="72"
+        height={height}
+        viewBox={viewBox}
+        fill="none"
+        aria-hidden="true"
+        style={{overflow: "visible", ...style}}
+    >
+        <path
+            d={path}
+            stroke="#8C6D56"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray="4 5"
+        />
+        <circle cx="36" cy={knotY} r="4" fill="#FDF5E6" stroke="#8C6D56" strokeWidth="1.5"/>
+    </svg>
+);
+
+const HeroFlightBanner = ({names}: { names: string }) => (
+    <div className="relative flex w-full flex-col items-center select-none" style={{marginTop: 4}}>
+        <img
+            src={toyAirplane}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none"
+            style={{
+                width: "min(74vw, 280px)",
+                height: "auto",
+                display: "block",
+                transform: "rotate(12deg)",
+                transformOrigin: "50% 55%",
+                filter: "drop-shadow(8px 10px 10px rgba(35, 73, 104, 0.18))",
+            }}
+        />
+        <FlightCable
+            height={68}
+            viewBox="0 0 72 68"
+            path="M14 0 C7 14 40 28 31 44 C26 54 35 61 36 68"
+            knotY={66}
+            style={{marginTop: -32, marginBottom: -4}}
+        />
+        <FlightBanner rotate={-1}>
+            <p
+                className="font-caveat font-bold text-foreground"
+                style={{fontSize: 30, lineHeight: 1.05}}
+            >
+                Это что свадьба?
+            </p>
+            <p
+                className="text-foreground opacity-70"
+                style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: 18,
+                    lineHeight: 1.2,
+                    marginTop: 3,
+                }}
+            >
+                У кого?
+            </p>
+        </FlightBanner>
+        <FlightCable
+            height={48}
+            viewBox="0 0 72 48"
+            path="M36 0 C39 10 30 18 36 27 C42 36 34 41 36 48"
+            knotY={46}
+            style={{marginTop: -2, marginBottom: -5}}
+        />
+        <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
+            <h1
+                className="font-caveat font-bold text-foreground"
+                style={{fontSize: 38, lineHeight: 1.05}}
+            >
+                {names}
+            </h1>
+        </FlightBanner>
+    </div>
+);
+
 // Divider doodle
 const Divider = () => (
     <div className="flex items-center justify-center gap-3 my-2">
@@ -263,33 +415,14 @@ export default function App() {
                     backgroundImage: `url(${gardenTexture})`,
                     backgroundPosition: "top center",
                     backgroundRepeat: "repeat",
-                    backgroundSize: "min(1254px, 100vw) auto",
+                    backgroundSize: "390px auto",
                     willChange: "transform",
                 }}
             />
             <div className="relative" style={{zIndex: 1}}>
                 {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
                 <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
-                    <Garland text="ЭТО ЧТО СВАДЬБА?"/>
-
-                    <p
-                        className="text-foreground opacity-60"
-                        style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontSize: 22,
-                            transform: "rotate(-2deg)",
-                            marginTop: 8
-                        }}
-                    >
-                        у кого?
-                    </p>
-
-                    <h1
-                        className="text-5xl font-caveat font-bold text-foreground text-center mt-4 mb-2"
-                        style={{lineHeight: 1.25}}
-                    >
-                        {CONFIG.groomName2} и {CONFIG.brideName2}
-                    </h1>
+                    <HeroFlightBanner names={`У ${CONFIG.groomName2} и ${CONFIG.brideName2}!`}/>
 
                     <Divider/>
 
@@ -585,7 +718,7 @@ export default function App() {
                     </div>
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 4. АНКЕТА ГОСТЯ ──────────────────────────────────────────────────── */}
                 <Section id="rsvp" className="pb-16">
@@ -753,7 +886,7 @@ export default function App() {
                     )}
                 </Section>
 
-                <WaveDivider/>
+                <WaveDivider flip/>
 
                 {/* ── 5. ТАЙМЕР ───────────────────────────────────────────────────────── */}
                 <Section id="zagsCountdown" className="pb-0">
