@@ -4,6 +4,7 @@ import {submitRsvp} from "@/api/rsvp";
 import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
+import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
 import toyAirplane from "@/imports/toy-airplane.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
@@ -412,13 +413,28 @@ export default function App() {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     zIndex: 0,
-                    backgroundImage: `url(${gardenTexture})`,
-                    backgroundPosition: "top center",
-                    backgroundRepeat: "repeat",
-                    backgroundSize: "390px auto",
                     willChange: "transform",
                 }}
-            />
+            >
+                <div
+                    className="absolute inset-0 md:hidden"
+                    style={{
+                        backgroundImage: `url(${gardenTexture})`,
+                        backgroundPosition: "top center",
+                        backgroundRepeat: "repeat",
+                        backgroundSize: "390px auto",
+                    }}
+                />
+                <div
+                    className="absolute inset-0 hidden md:block"
+                    style={{
+                        backgroundImage: `url(${gardenTextureDesktop})`,
+                        backgroundPosition: "top center",
+                        backgroundRepeat: "repeat",
+                        backgroundSize: "390px auto",
+                    }}
+                />
+            </div>
             <div className="relative" style={{zIndex: 1}}>
                 {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
                 <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
