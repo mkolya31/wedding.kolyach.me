@@ -53,8 +53,8 @@ const CONFIG = {
 
     // Анкета гостя — настройки опций
     form: {
-        alcoholOptions: ["Шампанское", "Красное вино", "Белое вино", "Пиво", "Не пью алкоголь"],
-        mainCourseOptions: ["Говядина", "Свинина", "Курица", "Рыба", "Вегетарианское"],
+        alcoholOptions: ["Шампанское", "Красное вино", "Белое вино", "Пиво", "Водка", "Джин", "Ром", "Коньяк", "Не пью алкоголь"],
+        mainCourseOptions: ["Ризотто с ростбифом", "Ризотто карри с лососем и эспуме из угря", "Утиная ножка конфи", "Сибас с пюре из корня сельдерея", "Стейк из телятины со свеклой и черной смородиной", "Рёбра кальки с папоротником", "Стейк Шато Бриан"],
     },
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -271,13 +271,20 @@ const HeroFlightBanner = ({names}: { names: string }) => (
             >
                 Это что свадьба?
             </p>
+        </FlightBanner>
+        <FlightCable
+            height={38}
+            viewBox="0 0 72 38"
+            path="M36 0 C30 8 43 14 36 23 C31 29 38 34 36 38"
+            knotY={36}
+            style={{marginTop: -2, marginBottom: -4}}
+        />
+        <FlightBanner rotate={1} maxWidth={220} padding="11px 18px 12px">
             <p
-                className="text-foreground opacity-70"
+                className="font-caveat font-bold text-foreground"
                 style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 18,
-                    lineHeight: 1.2,
-                    marginTop: 3,
+                    fontSize: 30,
+                    lineHeight: 1.05,
                 }}
             >
                 У кого?
@@ -317,8 +324,9 @@ type FormData = {
     name: string;
     attending: string;
     alcohol: string[];
-    mainCourse: string;
+    mainCourse: string[];
     transfer: string;
+    hostingHelp: string;
     website: string;
     submitted: boolean;
 };
@@ -332,8 +340,9 @@ export default function App() {
         name: "",
         attending: "",
         alcohol: [],
-        mainCourse: "",
+        mainCourse: [],
         transfer: "",
+        hostingHelp: "",
         website: "",
         submitted: false,
     });
@@ -372,6 +381,15 @@ export default function App() {
         }));
     };
 
+    const handleMainCourse = (val: string) => {
+        setForm((f) => ({
+            ...f,
+            mainCourse: f.mainCourse.includes(val)
+                ? f.mainCourse.filter((course) => course !== val)
+                : [...f.mainCourse, val],
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -387,8 +405,9 @@ export default function App() {
                 name: form.name,
                 i_will_come: form.attending,
                 alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse,
+                meal: form.mainCourse.join(", "),
                 need_transfer: form.transfer,
+                hosting_help: form.hostingHelp,
                 website,
             });
             setForm((f) => ({...f, submitted: true}));
@@ -700,36 +719,86 @@ export default function App() {
                         </div>
                     </a>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <h3 className="font-caveat font-bold text-3xl text-center text-foreground mt-10 mb-5">
+                        Часто задаваемые вопросы
+                    </h3>
+
+                    <div className="flex flex-col gap-4">
                         {[
-                            {name: CONFIG.groomName, handle: CONFIG.telegram.groomHandle, rotate: "-1deg"},
-                            {name: CONFIG.brideName, handle: CONFIG.telegram.brideHandle, rotate: "1deg"},
-                        ].map(({name, handle, rotate}) => (
-                            <a
-                                key={name}
-                                href={`https://t.me/${handle.replace("@", "")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-2 flex-1"
+                            {
+                                question: "Будет ли дресскод на свадьбе?",
+                                answer: "Нет, можете прийти в том, в чем вам будет комфортно веселиться и танцевать!",
+                            },
+			    {
+                                question: "Как добраться до ресторана?",
+                                answer: (
+                                    <>
+                                        Поставьте{" "}
+                                        <a
+                                            href="https://yandex.ru/maps/-/CTu8rJNv"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-bold underline"
+                                        >
+                                            вот эту точку
+                                        </a>{" "}
+                                        на карте для такси/вашей машины. Мы заранее пришлем вам билет для прохода в
+                                        парк (самому ничего покупать не нужно). По билету вы проходите на территорию,
+                                        идете прямо 200 метров, и справа будет ресторан.
+                                    </>
+                                ),
+                            },
+                            {
+                                question: "Есть ли рядом парковка?",
+                                answer: (
+                                    <>
+                                        Да, рядом с входом в парк есть платная парковка за 50 рублей в час. Можете{" "}
+                                        <a
+                                            href="https://yandex.ru/maps/-/CTu8b48C"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-bold underline"
+                                        >
+                                            проложить маршрут до этой точки
+                                        </a>
+                                        .
+                                    </>
+                                ),
+                            },
+			    {
+                                question: "Можно ли будет заказать блюда из меню, если мне что-то не подойдет?",
+                                answer: "Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе по меню.",
+                            },
+           		    {
+                                question: "Можно ли принести свои напитки в ресторан?",
+                                answer: "К сожалению, нет, так как ресторан находится на территории музея-заповедника.",
+                            },
+                            {
+                                question: "Что же вам подарить?",
+                                answer: "Мы вложили очень много средств и сил на этот праздник, поэтому лучший подарок для нас - это конвертик.",
+                            }
+                        ].map(({question, answer}) => (
+                            <details
+                                key={question}
+                                className="group"
                                 style={{
                                     background: "#FDF5E6",
                                     border: "none",
                                     borderRadius: 20,
-                                    padding: "20px 24px",
-                                    textDecoration: "none",
-                                    transform: `rotate(${rotate})`,
+                                    padding: "16px 20px",
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
                                 }}
                             >
-                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                    <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none"/>
-                                    <path d="M10 20 L28 13 L22 30 L18 24 L10 20Z" stroke="#234968" strokeWidth="1.5"
-                                          fill="none" strokeLinejoin="round"/>
-                                    <path d="M18 24 L21 27" stroke="#234968" strokeWidth="1.5" strokeLinecap="round"/>
-                                </svg>
-                                <span className="font-caveat font-bold text-xl text-foreground">{name}</span>
-                                <span className="font-caveat text-lg text-foreground opacity-60">{handle}</span>
-                            </a>
+                                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-caveat font-bold text-2xl text-foreground">
+                                    <span>{question}</span>
+                                    <span className="text-3xl leading-none transition-transform group-open:rotate-45">
+                                        +
+                                    </span>
+                                </summary>
+                                <p className="font-caveat text-xl text-foreground opacity-75 mt-3">
+                                    {answer}
+                                </p>
+                            </details>
                         ))}
                     </div>
                 </Section>
@@ -818,7 +887,7 @@ export default function App() {
                             </FormField>
 
                             {/* Attending */}
-                            <FormField label="Планируете ли присутствовать?">
+                            <FormField label="Планируете ли вы присутствовать?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, буду!", "К сожалению, не смогу"].map((opt) => (
                                         <RadioOption
@@ -832,7 +901,7 @@ export default function App() {
                             </FormField>
 
                             {/* Alcohol */}
-                            <FormField label="Что предпочитаете из алкоголя?">
+                            <FormField label="Что вы предпочитаете в качестве напитков?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.alcoholOptions.map((opt) => (
                                         <CheckboxOption
@@ -846,21 +915,21 @@ export default function App() {
                             </FormField>
 
                             {/* Main course */}
-                            <FormField label="Что предпочтёте в качестве горячего?">
+                            <FormField label="Что бы вы предпочли в качестве горячего?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
-                                        <RadioOption
+                                        <CheckboxOption
                                             key={opt}
                                             label={opt}
-                                            checked={form.mainCourse === opt}
-                                            onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
+                                            checked={form.mainCourse.includes(opt)}
+                                            onChange={() => handleMainCourse(opt)}
                                         />
                                     ))}
                                 </div>
                             </FormField>
 
                             {/* Transfer */}
-                            <FormField label="Нужен ли вам трансфер?">
+                            <FormField label="Потребуется ли вам трансфер?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
                                         <RadioOption
@@ -868,6 +937,20 @@ export default function App() {
                                             label={opt}
                                             checked={form.transfer === opt}
                                             onChange={() => setForm((f) => ({...f, transfer: opt}))}
+                                        />
+                                    ))}
+                                </div>
+                            </FormField>
+
+                            {/* Hosting help */}
+                            <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                                <div className="flex flex-col gap-2 mt-1">
+                                    {["Да", "Нет"].map((opt) => (
+                                        <RadioOption
+                                            key={opt}
+                                            label={opt}
+                                            checked={form.hostingHelp === opt}
+                                            onChange={() => setForm((f) => ({...f, hostingHelp: opt}))}
                                         />
                                     ))}
                                 </div>
@@ -994,7 +1077,7 @@ export default function App() {
                     <div className="self-start flex items-start gap-2 mb-2">
                         <Heart className="w-6 h-6 mt-1"/>
                         <Heart className="w-5 h-5 mt-2"/>
-                        <div className="ml-1">
+                        <FlightBanner rotate={-1} maxWidth={270} padding="12px 18px 13px">
                             <p style={{
                                 fontFamily: "'Montserrat', sans-serif",
                                 fontSize: 22,
@@ -1011,23 +1094,41 @@ export default function App() {
                             }}>
                                 С любовью
                             </p>
-                        </div>
+                        </FlightBanner>
                     </div>
 
+                    <FlightCable
+                        height={38}
+                        viewBox="0 0 72 38"
+                        path="M36 0 C30 8 43 14 36 23 C31 29 38 34 36 38"
+                        knotY={36}
+                        style={{marginTop: -2, marginBottom: -4}}
+                    />
+
                     {/* Names */}
-                    <h2
-                        className="text-foreground text-center w-full mt-4"
-                        style={{fontFamily: "'Montserrat', sans-serif", fontSize: 36, lineHeight: 1.2}}
-                    >
-                        Ваши почти муж и жена
-                    </h2>
+                    <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
+                        <h2
+                            className="text-foreground text-center"
+                            style={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
+                        >
+                            Ваши почти муж и жена
+                        </h2>
+                    </FlightBanner>
+
+                    <FlightCable
+                        height={48}
+                        viewBox="0 0 72 48"
+                        path="M36 0 C39 10 30 18 36 27 C42 36 34 41 36 48"
+                        knotY={46}
+                        style={{marginTop: -2, marginBottom: -5}}
+                    />
 
                     {/* Polaroid couple photo */}
-                    <div className="relative mt-10 w-full flex justify-center">
+                    <div className="relative mt-2 w-full flex justify-center">
                         <div
                             style={{
                                 background: "#fff",
-                                padding: "12px 12px 48px 12px",
+                                padding: "12px 12px 18px 12px",
                                 boxShadow: "6px 6px 20px rgba(45,43,110,0.13)",
                                 transform: "rotate(-1.5deg)",
                                 width: "72%",
@@ -1038,6 +1139,17 @@ export default function App() {
                                 alt="Максим и Анфиса"
                                 style={{width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block"}}
                             />
+                            <p style={{
+                                fontFamily: "'Montserrat', sans-serif",
+                                fontSize: 20,
+                                color: "#234968",
+                                opacity: 0.7,
+                                transform: "rotate(-1deg)",
+                                textAlign: "center",
+                                marginTop: 14
+                            }}>
+                                мы ждём вас
+                            </p>
                         </div>
                         {/* Hearts beside polaroid */}
                         <div className="absolute right-4 top-1/2 flex flex-col gap-1"
@@ -1045,20 +1157,6 @@ export default function App() {
                             <Heart className="w-7 h-7"/>
                             <Heart className="w-5 h-5 ml-3"/>
                         </div>
-                    </div>
-
-                    {/* Bottom annotation */}
-                    <div className="self-start mt-6 ml-4">
-                        <p style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontSize: 20,
-                            color: "#234968",
-                            opacity: 0.7,
-                            transform: "rotate(-2deg)",
-                            display: "block"
-                        }}>
-                            ↑ мы ждём вас
-                        </p>
                     </div>
                 </section>
 
