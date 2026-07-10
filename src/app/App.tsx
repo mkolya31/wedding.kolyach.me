@@ -1,7 +1,8 @@
 import {Children, useState, useEffect, useRef} from "react";
 import {ImageWithFallback} from "@/app/components/figma/ImageWithFallback";
 import {submitRsvp} from "@/api/rsvp";
-import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
+import groomPhoto from "@/imports/groom.jpg";
+import bridePhoto from "@/imports/bride.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
 import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
@@ -594,35 +595,17 @@ export default function App() {
                                     flex: "0 0 44%",
                                 }}
                             >
-                                <div
+                                <ImageWithFallback
+                                    src={groomPhoto}
+                                    alt="Жених в детстве"
                                     style={{
                                         width: "100%",
                                         aspectRatio: "3/4",
-                                        background: "#E8E0D5",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 8,
+                                        objectFit: "cover",
+                                        objectPosition: "center center",
+                                        display: "block"
                                     }}
-                                >
-                                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                                        <rect x="4" y="8" width="28" height="22" rx="2" stroke="#234968"
-                                              strokeWidth="1.5" fill="none" opacity="0.4"/>
-                                        <circle cx="18" cy="19" r="6" stroke="#234968" strokeWidth="1.5" fill="none"
-                                                opacity="0.4"/>
-                                        <path d="M13 8 L15 4 L21 4 L23 8" stroke="#234968" strokeWidth="1.5" fill="none"
-                                              opacity="0.4" strokeLinejoin="round"/>
-                                    </svg>
-                                    <span style={{
-                                        fontFamily: "'Montserrat', sans-serif",
-                                        fontSize: 13,
-                                        color: "#234968",
-                                        opacity: 0.45
-                                    }}>
-                  ваше фото
-                </span>
-                                </div>
+                                />
                             </div>
 
                             {/* Bride polaroid */}
