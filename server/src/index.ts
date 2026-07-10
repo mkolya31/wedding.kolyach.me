@@ -39,8 +39,9 @@ const rsvpSchema = z.object({
 
     i_will_come: z.string().trim().max(100).optional().default(''),
     alcohol: z.string().trim().max(200).optional().default(''),
-    meal: z.string().trim().max(200).optional().default(''),
+    meal: z.string().trim().max(1000).optional().default(''),
     need_transfer: z.string().trim().max(100).optional().default(''),
+    hosting_help: z.string().trim().max(20).optional().default(''),
 
     // Honeypot-поле против простых ботов.
     // На фронте оно должно быть скрытым и оставаться пустым.
@@ -86,7 +87,8 @@ app.post('/api/rsvp', rsvpLimiter, async (req, res) => {
                 i_will_come: data.i_will_come,
                 alcohol: data.alcohol,
                 meal: data.meal,
-                need_transfer: data.need_transfer
+                need_transfer: data.need_transfer,
+                hosting_help: data.hosting_help
             })
         });
 

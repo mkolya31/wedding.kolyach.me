@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef} from "react";
+import {Children, useState, useEffect, useRef} from "react";
 import {ImageWithFallback} from "@/app/components/figma/ImageWithFallback";
 import {submitRsvp} from "@/api/rsvp";
 import bridePhoto from "@/imports/photo_5335006619462476910_y.jpg";
@@ -53,11 +53,66 @@ const CONFIG = {
 
     // Анкета гостя — настройки опций
     form: {
-        alcoholOptions: ["Шампанское", "Красное вино", "Белое вино", "Пиво", "Не пью алкоголь"],
-        mainCourseOptions: ["Говядина", "Свинина", "Курица", "Рыба", "Вегетарианское"],
+        alcoholOptions: ["Шампанское", "Красное вино", "Белое вино", "Пиво", "Водка", "Джин", "Ром", "Коньяк", "Не пью алкоголь"],
+        mainCourseOptions: ["Ризотто с ростбифом", "Ризотто карри с лососем и эспуме из угря", "Утиная ножка конфи", "Сибас с пюре из корня сельдерея", "Стейк из телятины со свеклой и черной смородиной", "Рёбра кальки с папоротником", "Стейк Шато Бриан"],
     },
 };
 // ─────────────────────────────────────────────────────────────────────────────
+
+const FAQ_ITEMS = [
+    {
+        question: "Будет ли дресскод на свадьбе?",
+        answer: "Нет, можете прийти в том, в чем вам будет комфортно веселиться и танцевать!",
+    },
+    {
+        question: "Как добраться до ресторана?",
+        answer: (
+            <>
+                Поставьте{" "}
+                <a
+                    href="https://yandex.ru/maps/-/CTu8rJNv"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    вот эту точку
+                </a>{" "}
+                на карте для такси/вашей машины. Мы заранее пришлем вам билет для прохода в парк
+                (самому ничего покупать не нужно). По билету вы проходите на территорию, идете прямо
+                200 метров, и справа будет ресторан.
+            </>
+        ),
+    },
+    {
+        question: "Есть ли рядом парковка?",
+        answer: (
+            <>
+                Да, рядом с входом в парк есть платная парковка за 50 рублей в час. Можете{" "}
+                <a
+                    href="https://yandex.ru/maps/-/CTu8b48C"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    проложить маршрут до этой точки
+                </a>
+                .
+            </>
+        ),
+    },
+    {
+        question: "Можно ли будет заказать блюда из меню, если мне что-то не подойдет?",
+        answer: "Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе по меню.",
+    },
+    {
+        question: "Можно ли принести свои напитки в ресторан?",
+        answer: "К сожалению, нет, так как ресторан находится на территории музея-заповедника.",
+    },
+    {
+        question: "Что же вам подарить?",
+        answer: "Мы вложили очень много средств и сил на этот праздник, поэтому лучший подарок для нас - это конвертик.",
+    },
+];
 
 // Countdown hook
 function useCountdown(targetDate: string) {
@@ -155,14 +210,16 @@ const FlightBanner = ({
                           rotate = -1,
                           maxWidth = 390,
                           padding = "13px 18px 14px",
+                          className = "",
                       }: {
     children: React.ReactNode;
     rotate?: number;
     maxWidth?: number;
     padding?: string;
+    className?: string;
 }) => (
     <div
-        className="relative text-center"
+        className={`relative text-center ${className}`}
         style={{
             width: `min(100%, ${maxWidth}px)`,
             background: "#FDF5E6",
@@ -173,38 +230,6 @@ const FlightBanner = ({
             transform: `rotate(${rotate}deg)`,
         }}
     >
-        <span
-            aria-hidden="true"
-            style={{
-                position: "absolute",
-                left: -16,
-                top: 13,
-                width: 24,
-                height: 34,
-                background: "#EACDB8",
-                border: "2px solid rgba(140, 109, 86, 0.32)",
-                borderRight: "none",
-                borderRadius: "8px 0 0 8px",
-                transform: "skewY(8deg)",
-                zIndex: -1,
-            }}
-        />
-        <span
-            aria-hidden="true"
-            style={{
-                position: "absolute",
-                right: -16,
-                top: 13,
-                width: 24,
-                height: 34,
-                background: "#EACDB8",
-                border: "2px solid rgba(140, 109, 86, 0.32)",
-                borderLeft: "none",
-                borderRadius: "0 8px 8px 0",
-                transform: "skewY(-8deg)",
-                zIndex: -1,
-            }}
-        />
         {children}
     </div>
 );
@@ -241,6 +266,57 @@ const FlightCable = ({
     </svg>
 );
 
+const cableShapes = [
+    {
+        height: 34,
+        viewBox: "0 0 72 34",
+        path: "M36 0 C30 7 43 13 36 21 C31 26 38 31 36 34",
+        knotY: 32,
+    },
+    {
+        height: 42,
+        viewBox: "0 0 72 42",
+        path: "M36 0 C41 9 30 15 36 24 C43 32 34 37 36 42",
+        knotY: 40,
+    },
+    {
+        height: 38,
+        viewBox: "0 0 72 38",
+        path: "M36 0 C31 8 42 14 36 23 C31 29 38 34 36 38",
+        knotY: 36,
+    },
+];
+
+const FlightBannerStack = ({
+                               children,
+                               className = "",
+                           }: {
+    children: React.ReactNode;
+    className?: string;
+}) => {
+    const items = Children.toArray(children);
+
+    return (
+        <div className={`flex w-full flex-col items-center ${className}`}>
+            {items.map((child, index) => {
+                const cable = cableShapes[index % cableShapes.length];
+
+                return (
+                    <div key={index} className="flex w-full flex-col items-center">
+                        {index > 0 && (
+                            <FlightCable
+                                {...cable}
+                                style={{marginTop: -2, marginBottom: -5}}
+                            />
+                        )}
+                        {child}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const HeroFlightBanner = ({names}: { names: string }) => (
     <div className="relative flex w-full flex-col items-center select-none" style={{marginTop: 4}}>
         <img
@@ -271,13 +347,20 @@ const HeroFlightBanner = ({names}: { names: string }) => (
             >
                 Это что свадьба?
             </p>
+        </FlightBanner>
+        <FlightCable
+            height={38}
+            viewBox="0 0 72 38"
+            path="M36 0 C30 8 43 14 36 23 C31 29 38 34 36 38"
+            knotY={36}
+            style={{marginTop: -2, marginBottom: -4}}
+        />
+        <FlightBanner rotate={1} maxWidth={220} padding="11px 18px 12px">
             <p
-                className="text-foreground opacity-70"
+                className="font-caveat font-bold text-foreground"
                 style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 18,
-                    lineHeight: 1.2,
-                    marginTop: 3,
+                    fontSize: 30,
+                    lineHeight: 1.05,
                 }}
             >
                 У кого?
@@ -317,8 +400,9 @@ type FormData = {
     name: string;
     attending: string;
     alcohol: string[];
-    mainCourse: string;
+    mainCourse: string[];
     transfer: string;
+    hostingHelp: string;
     website: string;
     submitted: boolean;
 };
@@ -332,8 +416,9 @@ export default function App() {
         name: "",
         attending: "",
         alcohol: [],
-        mainCourse: "",
+        mainCourse: [],
         transfer: "",
+        hostingHelp: "",
         website: "",
         submitted: false,
     });
@@ -372,6 +457,15 @@ export default function App() {
         }));
     };
 
+    const handleMainCourse = (val: string) => {
+        setForm((f) => ({
+            ...f,
+            mainCourse: f.mainCourse.includes(val)
+                ? f.mainCourse.filter((course) => course !== val)
+                : [...f.mainCourse, val],
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -387,8 +481,9 @@ export default function App() {
                 name: form.name,
                 i_will_come: form.attending,
                 alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse,
+                meal: form.mainCourse.join(", "),
                 need_transfer: form.transfer,
+                hosting_help: form.hostingHelp,
                 website,
             });
             setForm((f) => ({...f, submitted: true}));
@@ -564,65 +659,51 @@ export default function App() {
                 <Section id="schedule">
                     <SectionTitle>Где и когда?</SectionTitle>
 
-                    {/* August 2026 calendar */}
-                    <div className="mb-8">
-                        <p className="text-center font-bold text-lg mb-3" style={{color: "#234968"}}>август 2026</p>
-                        <div style={{
-                            background: "#FDF5E6",
-                            borderRadius: 20,
-                            padding: "16px",
-                            boxShadow: "3px 3px 0 rgba(35,73,104,0.08)",
-                            height: "159px",
-                            overflow: "hidden",
-                        }}>
-                            <div className="grid grid-cols-7 mb-2">
-                                {["пн", "вт", "ср", "чт", "пт", "сб", "вс"].map(d => (
-                                    <div key={d} className="text-center text-xs font-semibold opacity-40"
-                                         style={{color: "#234968"}}>{d}</div>
-                                ))}
+                    <FlightBannerStack>
+                        <FlightBanner rotate={-0.75} maxWidth={390} padding="16px 18px 18px">
+                            <p className="text-center font-bold text-lg mb-3" style={{color: "#234968"}}>август 2026</p>
+                            <div style={{overflow: "hidden"}}>
+                                <div className="grid grid-cols-7 mb-2">
+                                    {["пн", "вт", "ср", "чт", "пт", "сб", "вс"].map(d => (
+                                        <div key={d} className="text-center text-xs font-semibold opacity-40"
+                                             style={{color: "#234968"}}>{d}</div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-y-1">
+                                    {[...Array(5)].map((_, i) => <div key={`e${i}`}/>)}
+                                    {[...Array(16)].map((_, i) => {
+                                        const day = i + 1;
+                                        const isMarked = day === 4 || day === 8;
+                                        return (
+                                            <div key={day} className="flex flex-col items-center justify-center"
+                                                 style={{height: 36}}>
+                                                {isMarked ? (
+                                                    <div className="relative flex items-center justify-center">
+                                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                                            <path
+                                                                d="M16 27S4 19 4 11a7 7 0 0 1 12-4.9A7 7 0 0 1 28 11c0 8-12 16-12 16z"
+                                                                fill="#B43A32" fillOpacity="0.25" stroke="#B43A32"
+                                                                strokeWidth="1.2"/>
+                                                        </svg>
+                                                        <span className="absolute text-xs font-bold"
+                                                              style={{color: "#234968"}}>{day}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm"
+                                                          style={{color: "#234968", opacity: 0.7}}>{day}</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="grid grid-cols-7 gap-y-1">
-                                {[...Array(5)].map((_, i) => <div key={`e${i}`}/>)}
-                                {[...Array(31)].map((_, i) => {
-                                    const day = i + 1;
-                                    const isMarked = day === 4 || day === 8;
-                                    return (
-                                        <div key={day} className="flex flex-col items-center justify-center"
-                                             style={{height: 36}}>
-                                            {isMarked ? (
-                                                <div className="relative flex items-center justify-center">
-                                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                                                        <path
-                                                            d="M16 27S4 19 4 11a7 7 0 0 1 12-4.9A7 7 0 0 1 28 11c0 8-12 16-12 16z"
-                                                            fill="#B43A32" fillOpacity="0.25" stroke="#B43A32"
-                                                            strokeWidth="1.2"/>
-                                                    </svg>
-                                                    <span className="absolute text-xs font-bold"
-                                                          style={{color: "#234968"}}>{day}</span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-sm"
-                                                      style={{color: "#234968", opacity: 0.7}}>{day}</span>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-4">
+                        </FlightBanner>
                         {CONFIG.schedule.map((item, i) => (
-                            <div
+                            <FlightBanner
                                 key={i}
-                                style={{
-                                    background: "#FDF5E6",
-                                    border: "none",
-                                    borderRadius: 16,
-                                    padding: "14px 18px",
-                                    transform: `rotate(${i % 2 === 0 ? -0.5 : 0.5}deg)`,
-                                    boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-                                }}
+                                rotate={i % 2 === 0 ? 0.75 : -0.75}
+                                maxWidth={390}
+                                padding="14px 18px 16px"
                             >
                                 <p
                                     className="font-caveat font-bold text-xl"
@@ -656,9 +737,9 @@ export default function App() {
                                         </a>
                                     )}
                                 </div>
-                            </div>
+                            </FlightBanner>
                         ))}
-                    </div>
+                    </FlightBannerStack>
 
                 </Section>
 
@@ -666,72 +747,39 @@ export default function App() {
 
                 {/* ── 3. КОНТАКТЫ ─────────────────────────────────────────────────────── */}
                 <Section id="contacts">
-                    <SectionTitle>Есть вопросы?</SectionTitle>
-                    <p className="font-caveat text-xl text-center text-foreground opacity-80 mb-6">
-                        Пишите нам в Telegram — ответим с радостью!
-                    </p>
+                    <SectionTitle>Общий чат</SectionTitle>
+                    <FlightBannerStack>
+                        <FlightBanner rotate={0.75} maxWidth={360}>
+                            <p className="font-caveat text-xl text-center text-foreground opacity-80">
+                                Вступайте в наш чат в Telegram. Там мы сможем ответить на ваши вопросы, обсудить предстоящее мероприятие и обменяться фотографиями лучших моментов. 
+                            </p>
+                        </FlightBanner>
 
-                    {/* Общий чат */}
-                    <a
-                        href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-4 w-full mb-4"
-                        style={{
-                            background: "#FDF5E6",
-                            border: "none",
-                            borderRadius: 20,
-                            padding: "18px 24px",
-                            textDecoration: "none",
-                            transform: "rotate(0.5deg)",
-                            boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-                        }}
-                    >
-                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                            <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none"/>
-                            <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
-                                  stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                        </svg>
-                        <div>
-                            <span
-                                className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
-                            <span
-                                className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
-                        </div>
-                    </a>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        {[
-                            {name: CONFIG.groomName, handle: CONFIG.telegram.groomHandle, rotate: "-1deg"},
-                            {name: CONFIG.brideName, handle: CONFIG.telegram.brideHandle, rotate: "1deg"},
-                        ].map(({name, handle, rotate}) => (
-                            <a
-                                key={name}
-                                href={`https://t.me/${handle.replace("@", "")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-2 flex-1"
-                                style={{
-                                    background: "#FDF5E6",
-                                    border: "none",
-                                    borderRadius: 20,
-                                    padding: "20px 24px",
-                                    textDecoration: "none",
-                                    transform: `rotate(${rotate})`,
-                                    boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-                                }}
-                            >
-                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                    <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none"/>
-                                    <path d="M10 20 L28 13 L22 30 L18 24 L10 20Z" stroke="#234968" strokeWidth="1.5"
-                                          fill="none" strokeLinejoin="round"/>
-                                    <path d="M18 24 L21 27" stroke="#234968" strokeWidth="1.5" strokeLinecap="round"/>
-                                </svg>
-                                <span className="font-caveat font-bold text-xl text-foreground">{name}</span>
-                                <span className="font-caveat text-lg text-foreground opacity-60">{handle}</span>
-                            </a>
-                        ))}
-                    </div>
+                        {/* Общий чат */}
+                        <a
+                            href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex w-full justify-center"
+                            style={{textDecoration: "none"}}
+                        >
+                            <FlightBanner rotate={-0.75} maxWidth={390} padding="18px 24px">
+                                <span className="flex items-center gap-4 text-left">
+                                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style={{flexShrink: 0}}>
+                                        <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none"/>
+                                        <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
+                                              stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                                    </svg>
+                                    <span>
+                                        <span
+                                            className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
+                                        <span
+                                            className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
+                                    </span>
+                                </span>
+                            </FlightBanner>
+                        </a>
+                    </FlightBannerStack>
                 </Section>
 
                 <WaveDivider/>
@@ -739,70 +787,59 @@ export default function App() {
                 {/* ── 4. АНКЕТА ГОСТЯ ──────────────────────────────────────────────────── */}
                 <Section id="rsvp" className="pb-16">
                     <SectionTitle>Анкета гостя</SectionTitle>
-                    <p className="font-caveat text-xl text-center text-foreground opacity-70 mb-6">
-                        Заполните, пожалуйста, чтобы мы всё подготовили!
-                    </p>
+                    <FlightBannerStack>
+                        <FlightBanner rotate={-0.75} maxWidth={360}>
+                            <p className="font-caveat text-xl text-center text-foreground opacity-70">
+                                Заполните, пожалуйста, чтобы мы всё подготовили!
+                            </p>
+                        </FlightBanner>
 
-                    {form.submitted ? (
-                        <div
-                            className="text-center py-12 px-6"
-                            style={{
-                                background: "#FDF5E6",
-                                border: "none",
-                                borderRadius: 24,
-                                boxShadow: "4px 4px 0 rgba(45,43,110,0.12)",
-                            }}
-                        >
-                            <div className="text-6xl mb-4">🎉</div>
-                            <p className="font-caveat font-bold text-3xl text-foreground">
-                                Спасибо, {form.name || "дорогой гость"}!
-                            </p>
-                            <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
-                                Ждём вас на нашем торжестве!
-                            </p>
-                            <div className="flex justify-center gap-3 mt-6">
-                                <Heart className="w-6 h-6"/>
-                                <Heart className="w-5 h-5 mt-1"/>
-                                <Heart className="w-6 h-6"/>
-                            </div>
-                        </div>
-                    ) : (
-                        <form
-                            onSubmit={handleSubmit}
-                            style={{
-                                background: "#FDF5E6",
-                                border: "none",
-                                borderRadius: 24,
-                                padding: "28px 24px",
-                                boxShadow: "4px 4px 0 rgba(45,43,110,0.12)",
-                            }}
-                        >
-                            <div
-                                aria-hidden="true"
-                                style={{
-                                    position: "absolute",
-                                    width: 1,
-                                    height: 1,
-                                    margin: -1,
-                                    padding: 0,
-                                    border: 0,
-                                    overflow: "hidden",
-                                    clip: "rect(0 0 0 0)",
-                                    clipPath: "inset(50%)",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                <label htmlFor="website">Website</label>
-                                <input
-                                    id="website"
-                                    name="website"
-                                    type="text"
-                                    value={form.website}
-                                    onChange={(e) => setForm((f) => ({...f, website: e.target.value}))}
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                />
-                            </div>
+                        {form.submitted ? (
+                            <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
+                                <div className="text-center">
+                                    <div className="text-6xl mb-4">🎉</div>
+                                    <p className="font-caveat font-bold text-3xl text-foreground">
+                                        Спасибо, {form.name || "дорогой гость"}!
+                                    </p>
+                                    <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
+                                        Ждём вас на нашем торжестве!
+                                    </p>
+                                    <div className="flex justify-center gap-3 mt-6">
+                                        <Heart className="w-6 h-6"/>
+                                        <Heart className="w-5 h-5 mt-1"/>
+                                        <Heart className="w-6 h-6"/>
+                                    </div>
+                                </div>
+                            </FlightBanner>
+                        ) : (
+                            <FlightBanner rotate={0.75} maxWidth={390} padding="28px 24px">
+                                <form onSubmit={handleSubmit} className="text-left">
+                                <div
+                                    aria-hidden="true"
+                                    style={{
+                                        position: "absolute",
+                                        width: 1,
+                                        height: 1,
+                                        margin: -1,
+                                        padding: 0,
+                                        border: 0,
+                                        overflow: "hidden",
+                                        clip: "rect(0 0 0 0)",
+                                        clipPath: "inset(50%)",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    <label htmlFor="website">Website</label>
+                                    <input
+                                        id="website"
+                                        name="website"
+                                        type="text"
+                                        value={form.website}
+                                        onChange={(e) => setForm((f) => ({...f, website: e.target.value}))}
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                    />
+                                </div>
 
                             {/* Name */}
                             <FormField label="Ваше имя и фамилия">
@@ -818,7 +855,7 @@ export default function App() {
                             </FormField>
 
                             {/* Attending */}
-                            <FormField label="Планируете ли присутствовать?">
+                            <FormField label="Планируете ли вы присутствовать?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, буду!", "К сожалению, не смогу"].map((opt) => (
                                         <RadioOption
@@ -832,7 +869,7 @@ export default function App() {
                             </FormField>
 
                             {/* Alcohol */}
-                            <FormField label="Что предпочитаете из алкоголя?">
+                            <FormField label="Что вы предпочитаете в качестве напитков?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.alcoholOptions.map((opt) => (
                                         <CheckboxOption
@@ -846,21 +883,21 @@ export default function App() {
                             </FormField>
 
                             {/* Main course */}
-                            <FormField label="Что предпочтёте в качестве горячего?">
+                            <FormField label="Что бы вы предпочли в качестве горячего?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
-                                        <RadioOption
+                                        <CheckboxOption
                                             key={opt}
                                             label={opt}
-                                            checked={form.mainCourse === opt}
-                                            onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
+                                            checked={form.mainCourse.includes(opt)}
+                                            onChange={() => handleMainCourse(opt)}
                                         />
                                     ))}
                                 </div>
                             </FormField>
 
                             {/* Transfer */}
-                            <FormField label="Нужен ли вам трансфер?">
+                            <FormField label="Потребуется ли вам трансфер?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
                                         <RadioOption
@@ -868,6 +905,20 @@ export default function App() {
                                             label={opt}
                                             checked={form.transfer === opt}
                                             onChange={() => setForm((f) => ({...f, transfer: opt}))}
+                                        />
+                                    ))}
+                                </div>
+                            </FormField>
+
+                            {/* Hosting help */}
+                            <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                                <div className="flex flex-col gap-2 mt-1">
+                                    {["Да", "Нет"].map((opt) => (
+                                        <RadioOption
+                                            key={opt}
+                                            label={opt}
+                                            checked={form.hostingHelp === opt}
+                                            onChange={() => setForm((f) => ({...f, hostingHelp: opt}))}
                                         />
                                     ))}
                                 </div>
@@ -898,36 +949,65 @@ export default function App() {
                                     {submitError}
                                 </p>
                             ) : null}
-                        </form>
-                    )}
+                                </form>
+                            </FlightBanner>
+                        )}
+                    </FlightBannerStack>
                 </Section>
 
                 <WaveDivider flip/>
 
-                {/* ── 5. ТАЙМЕР ───────────────────────────────────────────────────────── */}
+                {/* ── 5. ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ─────────────────────────────────────── */}
+                <Section id="faq" className="pb-16">
+                    <SectionTitle>Часто задаваемые вопросы</SectionTitle>
+                    <FlightBannerStack>
+                        {FAQ_ITEMS.map(({question, answer}) => (
+                            <FlightBanner
+                                key={question}
+                                rotate={question.length % 2 === 0 ? -0.75 : 0.75}
+                                maxWidth={390}
+                                padding="16px 20px"
+                            >
+                                <details className="group">
+                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-caveat font-bold text-2xl text-foreground">
+                                        <span>{question}</span>
+                                        <span className="text-3xl leading-none transition-transform group-open:rotate-45">
+                                            +
+                                        </span>
+                                    </summary>
+                                    <p className="font-caveat text-xl text-foreground opacity-75 mt-3">
+                                        {answer}
+                                    </p>
+                                </details>
+                            </FlightBanner>
+                        ))}
+                    </FlightBannerStack>
+                </Section>
+
+                <WaveDivider flip/>
+
+                {/* ── 6. ТАЙМЕР ───────────────────────────────────────────────────────── */}
                 <Section id="zagsCountdown" className="pb-0">
                     <SectionTitle>До загса осталось</SectionTitle>
-                    <div
-                        className="flex justify-center gap-3 flex-wrap"
-                    >
-                        {[
-                            {value: zagsCountdown.days, label: "дней"},
-                            {value: zagsCountdown.hours, label: "часов"},
-                            {value: zagsCountdown.minutes, label: "минут"},
-                            {value: zagsCountdown.seconds, label: "секунд"},
-                        ].map(({value, label}) => (
-                            <div
-                                key={label}
-                                className="flex flex-col items-center"
-                                style={{
-                                    background: "#FDF5E6",
-                                    border: "none",
-                                    borderRadius: 16,
-                                    padding: "16px 18px",
-                                    minWidth: 72,
-                                    boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-                                }}
-                            >
+                    <FlightBannerStack>
+                        <FlightBanner rotate={-0.75} maxWidth={390} padding="18px 16px 20px">
+                            <div className="flex justify-center gap-3 flex-wrap">
+                                {[
+                                    {value: zagsCountdown.days, label: "дней"},
+                                    {value: zagsCountdown.hours, label: "часов"},
+                                    {value: zagsCountdown.minutes, label: "минут"},
+                                    {value: zagsCountdown.seconds, label: "секунд"},
+                                ].map(({value, label}) => (
+                                    <div
+                                        key={label}
+                                        className="flex flex-col items-center"
+                                        style={{
+                                            border: "1.5px dashed rgba(140, 109, 86, 0.38)",
+                                            borderRadius: 12,
+                                            padding: "10px 12px",
+                                            minWidth: 68,
+                                        }}
+                                    >
               <span
                   className="font-caveat font-bold text-5xl"
                   style={{color: "#5A8BB4", lineHeight: 1}}
@@ -937,34 +1017,34 @@ export default function App() {
                                 <span className="font-caveat text-base text-foreground opacity-70 mt-1">
                 {label}
               </span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </FlightBanner>
+                    </FlightBannerStack>
                 </Section>
 
                 <Section id="weddingCountdown">
                     <SectionTitle>До свадьбы осталось</SectionTitle>
-                    <div
-                        className="flex justify-center gap-3 flex-wrap"
-                    >
-                        {[
-                            {value: weddingCountdown.days, label: "дней"},
-                            {value: weddingCountdown.hours, label: "часов"},
-                            {value: weddingCountdown.minutes, label: "минут"},
-                            {value: weddingCountdown.seconds, label: "секунд"},
-                        ].map(({value, label}) => (
-                            <div
-                                key={label}
-                                className="flex flex-col items-center"
-                                style={{
-                                    background: "#FDF5E6",
-                                    border: "none",
-                                    borderRadius: 16,
-                                    padding: "16px 18px",
-                                    minWidth: 72,
-                                    boxShadow: "3px 3px 0 rgba(45,43,110,0.12)",
-                                }}
-                            >
+                    <FlightBannerStack>
+                        <FlightBanner rotate={0.75} maxWidth={390} padding="18px 16px 20px">
+                            <div className="flex justify-center gap-3 flex-wrap">
+                                {[
+                                    {value: weddingCountdown.days, label: "дней"},
+                                    {value: weddingCountdown.hours, label: "часов"},
+                                    {value: weddingCountdown.minutes, label: "минут"},
+                                    {value: weddingCountdown.seconds, label: "секунд"},
+                                ].map(({value, label}) => (
+                                    <div
+                                        key={label}
+                                        className="flex flex-col items-center"
+                                        style={{
+                                            border: "1.5px dashed rgba(140, 109, 86, 0.38)",
+                                            borderRadius: 12,
+                                            padding: "10px 12px",
+                                            minWidth: 68,
+                                        }}
+                                    >
               <span
                   className="font-caveat font-bold text-5xl"
                   style={{color: "#5A8BB4", lineHeight: 1}}
@@ -974,9 +1054,11 @@ export default function App() {
                                 <span className="font-caveat text-base text-foreground opacity-70 mt-1">
                 {label}
               </span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </FlightBanner>
+                    </FlightBannerStack>
                     <div className="flex justify-center mt-6 gap-3">
                         <Heart className="w-6 h-6"/>
                         <Heart className="w-4 h-4 mt-1"/>
@@ -986,7 +1068,7 @@ export default function App() {
 
                 <WaveDivider/>
 
-                {/* ── 6. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
+                {/* ── 7. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
                 <section
                     className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
                 >
@@ -994,7 +1076,7 @@ export default function App() {
                     <div className="self-start flex items-start gap-2 mb-2">
                         <Heart className="w-6 h-6 mt-1"/>
                         <Heart className="w-5 h-5 mt-2"/>
-                        <div className="ml-1">
+                        <FlightBanner rotate={-1} maxWidth={270} padding="12px 18px 13px">
                             <p style={{
                                 fontFamily: "'Montserrat', sans-serif",
                                 fontSize: 22,
@@ -1011,23 +1093,41 @@ export default function App() {
                             }}>
                                 С любовью
                             </p>
-                        </div>
+                        </FlightBanner>
                     </div>
 
+                    <FlightCable
+                        height={38}
+                        viewBox="0 0 72 38"
+                        path="M36 0 C30 8 43 14 36 23 C31 29 38 34 36 38"
+                        knotY={36}
+                        style={{marginTop: -2, marginBottom: -4}}
+                    />
+
                     {/* Names */}
-                    <h2
-                        className="text-foreground text-center w-full mt-4"
-                        style={{fontFamily: "'Montserrat', sans-serif", fontSize: 36, lineHeight: 1.2}}
-                    >
-                        Ваши почти муж и жена
-                    </h2>
+                    <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
+                        <h2
+                            className="text-foreground text-center"
+                            style={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
+                        >
+                            Ваши почти муж и жена
+                        </h2>
+                    </FlightBanner>
+
+                    <FlightCable
+                        height={48}
+                        viewBox="0 0 72 48"
+                        path="M36 0 C39 10 30 18 36 27 C42 36 34 41 36 48"
+                        knotY={46}
+                        style={{marginTop: -2, marginBottom: -5}}
+                    />
 
                     {/* Polaroid couple photo */}
-                    <div className="relative mt-10 w-full flex justify-center">
+                    <div className="relative mt-2 w-full flex justify-center">
                         <div
                             style={{
                                 background: "#fff",
-                                padding: "12px 12px 48px 12px",
+                                padding: "12px 12px 18px 12px",
                                 boxShadow: "6px 6px 20px rgba(45,43,110,0.13)",
                                 transform: "rotate(-1.5deg)",
                                 width: "72%",
@@ -1038,6 +1138,17 @@ export default function App() {
                                 alt="Максим и Анфиса"
                                 style={{width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block"}}
                             />
+                            <p style={{
+                                fontFamily: "'Montserrat', sans-serif",
+                                fontSize: 20,
+                                color: "#234968",
+                                opacity: 0.7,
+                                transform: "rotate(-1deg)",
+                                textAlign: "center",
+                                marginTop: 14
+                            }}>
+                                мы ждём вас
+                            </p>
                         </div>
                         {/* Hearts beside polaroid */}
                         <div className="absolute right-4 top-1/2 flex flex-col gap-1"
@@ -1045,20 +1156,6 @@ export default function App() {
                             <Heart className="w-7 h-7"/>
                             <Heart className="w-5 h-5 ml-3"/>
                         </div>
-                    </div>
-
-                    {/* Bottom annotation */}
-                    <div className="self-start mt-6 ml-4">
-                        <p style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontSize: 20,
-                            color: "#234968",
-                            opacity: 0.7,
-                            transform: "rotate(-2deg)",
-                            display: "block"
-                        }}>
-                            ↑ мы ждём вас
-                        </p>
                     </div>
                 </section>
 
