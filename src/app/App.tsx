@@ -148,36 +148,6 @@ const Heart = ({className = ""}: { className?: string }) => (
     </svg>
 );
 
-// Garland banner
-const Garland = ({text}: { text: string }) => {
-    const words = text.split(" ");
-    return (
-        <div className="flex flex-wrap justify-center gap-y-2 gap-x-2 py-4 select-none w-full px-2">
-            {words.map((word, wi) => (
-                <div key={wi} className="flex items-end gap-[3px]">
-                    {word.split("").map((letter, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center justify-center font-caveat font-bold text-foreground"
-                            style={{
-                                width: 28,
-                                height: 28,
-                                border: "2px solid #234968",
-                                borderRadius: 4,
-                                fontSize: 15,
-                                transform: `rotate(${(i % 3 === 0 ? -2 : i % 3 === 1 ? 1 : -1)}deg)`,
-                                flexShrink: 0,
-                            }}
-                        >
-                            {letter}
-                        </div>
-                    ))}
-                </div>
-            ))}
-        </div>
-    );
-};
-
 // Section wrapper
 const Section = ({
                      children,
