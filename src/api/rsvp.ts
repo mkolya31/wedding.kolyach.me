@@ -4,6 +4,7 @@ export type RsvpPayload = {
     alcohol?: string;
     meal?: string;
     need_transfer?: string;
+    hosting_help?: string;
 
     /**
      * Honeypot-поле против простых ботов.
@@ -29,6 +30,7 @@ export async function submitRsvp(payload: RsvpPayload): Promise<RsvpResponse> {
             alcohol: payload.alcohol ?? '',
             meal: payload.meal ?? '',
             need_transfer: payload.need_transfer ?? '',
+            hosting_help: payload.hosting_help ?? '',
             website: payload.website ?? ''
         })
     });

@@ -86,10 +86,5 @@
     "tsx": "^4.23.0",
     "typescript": "^6.0.3",
     "vite": "6.4.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "6.3.5"
-    }
   }
 }
