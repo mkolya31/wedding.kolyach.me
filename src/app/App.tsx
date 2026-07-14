@@ -7,6 +7,7 @@ import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
 import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
 import toyAirplane from "@/imports/toy-airplane.png";
+import titleCloud from "@/imports/title-cloud.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -166,14 +167,65 @@ const Section = ({
     </section>
 );
 
-// Wobbly section title
-const SectionTitle = ({children}: { children: React.ReactNode }) => (
-    <h2
-        className="text-3xl font-caveat font-bold text-foreground text-center mb-6"
-        style={{lineHeight: 1.3}}
+const CloudTitle = ({
+                        children,
+                        as: Heading = "h2",
+                        className = "",
+                        textClassName = "text-3xl",
+                        textStyle = {},
+                        rotate = -0.6,
+                        maxWidth,
+                        padding = "24px 46px",
+                    }: {
+    children: React.ReactNode;
+    as?: "h1" | "h2";
+    className?: string;
+    textClassName?: string;
+    textStyle?: React.CSSProperties;
+    rotate?: number;
+    maxWidth?: number;
+    padding?: string;
+}) => (
+    <div
+        className={`relative mx-auto flex w-fit max-w-full items-center justify-center text-center ${className}`}
+        style={{
+            transform: `rotate(${rotate}deg)`,
+            width: maxWidth ? `min(100%, ${maxWidth}px)` : undefined,
+            boxSizing: "border-box",
+            padding,
+            zIndex: 0,
+        }}
     >
+        <img
+            src={titleCloud}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute select-none"
+            style={{
+                left: "50%",
+                top: "-18px",
+                width: "calc(100% + 48px)",
+                height: "calc(100% + 36px)",
+                objectFit: "fill",
+                transform: "translateX(-50%)",
+                zIndex: 0,
+                filter: "drop-shadow(5px 7px 0 rgba(45,43,110,0.10)) drop-shadow(0 10px 18px rgba(35,73,104,0.10))",
+            }}
+        />
+        <Heading
+            className={`relative font-caveat font-bold text-foreground text-center ${textClassName}`}
+            style={{lineHeight: 1.2, zIndex: 1, ...textStyle}}
+        >
+            {children}
+        </Heading>
+    </div>
+);
+
+// Cloud-like section title
+const SectionTitle = ({children}: { children: React.ReactNode }) => (
+    <CloudTitle className="mb-7">
         {children}
-    </h2>
+    </CloudTitle>
 );
 
 const FlightBanner = ({
@@ -344,14 +396,15 @@ const HeroFlightBanner = ({names}: { names: string }) => (
             knotY={46}
             style={{marginTop: -2, marginBottom: -5}}
         />
-        <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
-            <h1
-                className="font-caveat font-bold text-foreground"
-                style={{fontSize: 38, lineHeight: 1.05}}
-            >
-                {names}
-            </h1>
-        </FlightBanner>
+        <CloudTitle
+            as="h1"
+            textStyle={{fontSize: 38, lineHeight: 1.05}}
+            rotate={1}
+            maxWidth={330}
+            padding="26px 34px"
+        >
+            {names}
+        </CloudTitle>
     </div>
 );
 
@@ -1012,23 +1065,14 @@ export default function App() {
                             </div>
                         </FlightBanner>
                     </FlightBannerStack>
-                    <div className="flex justify-center mt-6 gap-3">
-                        <Heart className="w-6 h-6"/>
-                        <Heart className="w-4 h-4 mt-1"/>
-                        <Heart className="w-6 h-6"/>
-                    </div>
                 </Section>
-
-                <WaveDivider/>
 
                 {/* ── 7. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
                 <section
                     className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
                 >
                     {/* Top text */}
-                    <div className="self-start flex items-start gap-2 mb-2">
-                        <Heart className="w-6 h-6 mt-1"/>
-                        <Heart className="w-5 h-5 mt-2"/>
+                    <div className="self-start flex items-start mb-2">
                         <FlightBanner rotate={-1} maxWidth={270} padding="12px 18px 13px">
                             <p style={{
                                 fontFamily: "'Montserrat', sans-serif",
@@ -1058,14 +1102,15 @@ export default function App() {
                     />
 
                     {/* Names */}
-                    <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
-                        <h2
-                            className="text-foreground text-center"
-                            style={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
-                        >
-                            Ваши почти муж и жена
-                        </h2>
-                    </FlightBanner>
+                    <CloudTitle
+                        rotate={1}
+                        maxWidth={360}
+                        textClassName="text-foreground"
+                        textStyle={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
+                        padding="25px 34px"
+                    >
+                        Ваши почти муж и жена
+                    </CloudTitle>
 
                     <FlightCable
                         height={48}
@@ -1103,22 +1148,11 @@ export default function App() {
                                 мы ждём вас
                             </p>
                         </div>
-                        {/* Hearts beside polaroid */}
-                        <div className="absolute right-4 top-1/2 flex flex-col gap-1"
-                             style={{transform: "translateY(-50%)"}}>
-                            <Heart className="w-7 h-7"/>
-                            <Heart className="w-5 h-5 ml-3"/>
-                        </div>
                     </div>
                 </section>
 
                 {/* Footer */}
                 <footer className="text-center pb-10">
-                    <div className="flex justify-center gap-2 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                            <Heart key={i} className="w-4 h-4 opacity-40"/>
-                        ))}
-                    </div>
                     <p className="font-caveat text-lg text-foreground opacity-50">
                         {CONFIG.groomName} & {CONFIG.brideName} • {new Date(CONFIG.weddingDate).getFullYear()}
                     </p>
