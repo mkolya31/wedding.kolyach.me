@@ -8,6 +8,7 @@ import gardenTexture from "@/imports/garden-texture.png";
 import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
 import toyAirplane from "@/imports/toy-airplane.png";
 import titleCloud from "@/imports/title-cloud.png";
+import cloudHeartDivider from "@/imports/cloud-heart-divider.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -408,15 +409,26 @@ const HeroFlightBanner = ({names}: { names: string }) => (
     </div>
 );
 
+const DividerImage = ({
+                          className = "",
+                      }: {
+    className?: string;
+}) => (
+    <div className={`flex w-full justify-center overflow-visible ${className}`} aria-hidden="true">
+        <img
+            src={cloudHeartDivider}
+            alt=""
+            className="block h-auto max-w-full select-none"
+            style={{
+                width: 720,
+            }}
+        />
+    </div>
+);
+
 // Divider doodle
 const Divider = () => (
-    <div className="flex items-center justify-center gap-3 my-2">
-        <Heart className="w-4 h-4 opacity-60"/>
-        <svg width="80" height="8" viewBox="0 0 80 8">
-            <path d="M0,4 Q20,0 40,4 Q60,8 80,4" stroke="#234968" strokeWidth="1.5" fill="none" opacity="0.4"/>
-        </svg>
-        <Heart className="w-4 h-4 opacity-60"/>
-    </div>
+    <DividerImage className="mx-auto my-1 px-4"/>
 );
 
 // Form state type
@@ -558,8 +570,6 @@ export default function App() {
                 {/* ── 1. ОБЛОЖКА ─────────────────────────────────────────────────────── */}
                 <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
                     <HeroFlightBanner names={`У ${CONFIG.groomName2} и ${CONFIG.brideName2}!`}/>
-
-                    <Divider/>
 
                     {/* Polaroid photos */}
                     <div className="relative w-full mt-8 px-2" style={{paddingBottom: 48}}>
@@ -749,7 +759,7 @@ export default function App() {
 
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 3. КОНТАКТЫ ─────────────────────────────────────────────────────── */}
                 <Section id="contacts">
@@ -961,7 +971,7 @@ export default function App() {
                     </FlightBannerStack>
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 5. ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ─────────────────────────────────────── */}
                 <Section id="faq" className="pb-16">
@@ -990,7 +1000,7 @@ export default function App() {
                     </FlightBannerStack>
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 6. ТАЙМЕР ───────────────────────────────────────────────────────── */}
                 <Section id="zagsCountdown" className="pb-0">
@@ -1066,6 +1076,8 @@ export default function App() {
                         </FlightBanner>
                     </FlightBannerStack>
                 </Section>
+
+                <WaveDivider/>
 
                 {/* ── 7. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
                 <section
@@ -1261,19 +1273,8 @@ function CheckboxOption({
     );
 }
 
-function WaveDivider({flip = false}: { flip?: boolean }) {
+function WaveDivider() {
     return (
-        <svg
-            viewBox="0 0 400 30"
-            preserveAspectRatio="none"
-            className="w-full"
-            style={{height: 30, transform: flip ? "scaleY(-1)" : "none"}}
-        >
-            <path
-                d="M0,15 Q50,0 100,15 Q150,30 200,15 Q250,0 300,15 Q350,30 400,15 L400,30 L0,30 Z"
-                fill="#ffffff"
-                opacity="1"
-            />
-        </svg>
+        <DividerImage className="my-1 px-4"/>
     );
 }
