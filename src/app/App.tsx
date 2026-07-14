@@ -104,8 +104,21 @@ const FAQ_ITEMS = [
         ),
     },
     {
-        question: "Можно ли будет заказать блюда из меню, если мне что-то не подойдет?",
-        answer: "Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе по меню.",
+        question: "Можно ли будет дозаказать блюда по меню?",
+        answer: (
+            <>
+                Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе.{" "}
+                <a
+                    href="/menu.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    Посмотреть меню
+                </a>
+                .
+            </>
+        ),
     },
     {
         question: "Можно ли принести свои напитки в ресторан?",
@@ -436,7 +449,7 @@ type FormData = {
     name: string;
     attending: string;
     alcohol: string[];
-    mainCourse: string[];
+    mainCourse: string;
     transfer: string;
     hostingHelp: string;
     website: string;
@@ -452,7 +465,7 @@ export default function App() {
         name: "",
         attending: "",
         alcohol: [],
-        mainCourse: [],
+        mainCourse: "",
         transfer: "",
         hostingHelp: "",
         website: "",
@@ -460,6 +473,14 @@ export default function App() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const isFormComplete =
+        form.name.trim().length > 0 &&
+        form.attending.length > 0 &&
+        form.alcohol.length > 0 &&
+        form.mainCourse.length > 0 &&
+        form.transfer.length > 0 &&
+        form.hostingHelp.length > 0;
+    const isSubmitDisabled = isSubmitting || !isFormComplete;
 
     useEffect(() => {
         let frame = 0;
@@ -493,19 +514,15 @@ export default function App() {
         }));
     };
 
-    const handleMainCourse = (val: string) => {
-        setForm((f) => ({
-            ...f,
-            mainCourse: f.mainCourse.includes(val)
-                ? f.mainCourse.filter((course) => course !== val)
-                : [...f.mainCourse, val],
-        }));
-    };
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (isSubmitting) return;
+
+        if (!isFormComplete) {
+            setSubmitError("Пожалуйста, ответьте на все вопросы анкеты.");
+            return;
+        }
 
         const website = String(new window.FormData(e.currentTarget).get("website") ?? "");
 
@@ -517,7 +534,7 @@ export default function App() {
                 name: form.name,
                 i_will_come: form.attending,
                 alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse.join(", "),
+                meal: form.mainCourse,
                 need_transfer: form.transfer,
                 hosting_help: form.hostingHelp,
                 website,
@@ -573,47 +590,8 @@ export default function App() {
 
                     {/* Polaroid photos */}
                     <div className="relative w-full mt-8 px-2" style={{paddingBottom: 48}}>
-
-                        {/* Groom label — top-left, arrow points right-down to photo */}
-                        <div className="absolute" style={{left: 0, top: -8, zIndex: 2}}>
-            <span style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 20,
-                color: "#234968",
-                transform: "rotate(-3deg)",
-                display: "block"
-            }}>
-              жених
-            </span>
-                            <svg width="36" height="32" viewBox="0 0 36 32" fill="none">
-                                <path d="M4 4 Q18 10 30 26" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round"/>
-                                <path d="M24 24 L30 26 L27 19" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
-
-                        {/* Bride label — top-right, arrow points left-down to photo */}
-                        <div className="absolute" style={{right: 0, top: -8, zIndex: 2, textAlign: "right"}}>
-            <span style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 20,
-                color: "#234968",
-                transform: "rotate(3deg)",
-                display: "block"
-            }}>
-              невеста
-            </span>
-                            <svg width="36" height="32" viewBox="0 0 36 32" fill="none" style={{marginLeft: "auto"}}>
-                                <path d="M32 4 Q18 10 6 26" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round"/>
-                                <path d="M12 24 L6 26 L9 19" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
-
                         {/* Photos row */}
-                        <div className="flex justify-center items-end gap-4 pt-10">
+                        <div className="flex justify-center items-end gap-4">
                             {/* Floating hearts */}
                             <Heart className="w-4 h-4 absolute left-1 bottom-12 opacity-50"/>
                             <Heart className="w-3 h-3 absolute right-2 bottom-16 opacity-40"/>
@@ -639,6 +617,9 @@ export default function App() {
                                         display: "block"
                                     }}
                                 />
+                                <p className="font-caveat text-center text-2xl text-foreground mt-2 leading-none">
+                                    жених
+                                </p>
                             </div>
 
                             {/* Bride polaroid */}
@@ -662,6 +643,9 @@ export default function App() {
                                         display: "block"
                                     }}
                                 />
+                                <p className="font-caveat text-center text-2xl text-foreground mt-2 leading-none">
+                                    невеста
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -902,11 +886,11 @@ export default function App() {
                             <FormField label="Что бы вы предпочли в качестве горячего?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
-                                        <CheckboxOption
+                                        <RadioOption
                                             key={opt}
                                             label={opt}
-                                            checked={form.mainCourse.includes(opt)}
-                                            onChange={() => handleMainCourse(opt)}
+                                            checked={form.mainCourse === opt}
+                                            onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
                                         />
                                     ))}
                                 </div>
@@ -928,6 +912,9 @@ export default function App() {
 
                             {/* Hosting help */}
                             <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                                <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
+                                    От вас потребуется сказать несколько фраз, либо провести какую-то активность
+                                </p>
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да", "Нет"].map((opt) => (
                                         <RadioOption
@@ -942,24 +929,29 @@ export default function App() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitDisabled}
                                 className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
                                     borderRadius: 50,
-                                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                                    opacity: isSubmitting ? 0.75 : 1,
+                                    cursor: isSubmitDisabled ? "not-allowed" : "pointer",
+                                    opacity: isSubmitDisabled ? 0.55 : 1,
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
                                     transition: "transform 0.1s",
                                 }}
                                 onMouseDown={(e) => {
-                                    if (!isSubmitting) e.currentTarget.style.transform = "scale(0.97)";
+                                    if (!isSubmitDisabled) e.currentTarget.style.transform = "scale(0.97)";
                                 }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
                                 Отправить ответы
                             </button>
+                            {!isFormComplete ? (
+                                <p className="font-caveat text-base text-center text-foreground opacity-60 mt-3">
+                                    Ответьте на все вопросы, чтобы отправить анкету.
+                                </p>
+                            ) : null}
                             {submitError ? (
                                 <p className="font-caveat text-xl text-center text-red-700 mt-4">
                                     {submitError}
@@ -1185,6 +1177,8 @@ const inputStyle: React.CSSProperties = {
     fontSize: 20,
 };
 
+const formControlActiveColor = "#234968";
+
 function FormField({label, children}: { label: string; children: React.ReactNode }) {
     return (
         <div className="mb-6">
@@ -1223,7 +1217,7 @@ function RadioOption({
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              background: checked ? "#D4826A" : "transparent",
+              background: checked ? formControlActiveColor : "transparent",
               transition: "background 0.15s",
           }}
       >
@@ -1257,7 +1251,7 @@ function CheckboxOption({
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              background: checked ? "#234968" : "transparent",
+              background: checked ? formControlActiveColor : "transparent",
               transition: "background 0.15s",
           }}
       >
