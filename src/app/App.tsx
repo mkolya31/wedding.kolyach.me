@@ -439,11 +439,6 @@ const DividerImage = ({
     </div>
 );
 
-// Divider doodle
-const Divider = () => (
-    <DividerImage className="mx-auto my-1 px-4"/>
-);
-
 // Form state type
 type FormData = {
     name: string;
@@ -999,7 +994,7 @@ export default function App() {
                     <SectionTitle>До загса осталось</SectionTitle>
                     <FlightBannerStack>
                         <FlightBanner rotate={-0.75} maxWidth={390} padding="18px 16px 20px">
-                            <div className="flex justify-center gap-3 flex-wrap">
+                            <div className="grid grid-cols-4 gap-2">
                                 {[
                                     {value: zagsCountdown.days, label: "дней"},
                                     {value: zagsCountdown.hours, label: "часов"},
@@ -1012,12 +1007,12 @@ export default function App() {
                                         style={{
                                             border: "1.5px dashed rgba(140, 109, 86, 0.38)",
                                             borderRadius: 12,
-                                            padding: "10px 12px",
-                                            minWidth: 68,
+                                            padding: "10px 6px",
+                                            minWidth: 0,
                                         }}
                                     >
               <span
-                  className="font-caveat font-bold text-5xl"
+                  className="font-caveat font-bold text-4xl sm:text-5xl"
                   style={{color: "#5A8BB4", lineHeight: 1}}
               >
                 {String(value).padStart(2, "0")}
@@ -1036,7 +1031,7 @@ export default function App() {
                     <SectionTitle>До свадьбы осталось</SectionTitle>
                     <FlightBannerStack>
                         <FlightBanner rotate={0.75} maxWidth={390} padding="18px 16px 20px">
-                            <div className="flex justify-center gap-3 flex-wrap">
+                            <div className="grid grid-cols-4 gap-2">
                                 {[
                                     {value: weddingCountdown.days, label: "дней"},
                                     {value: weddingCountdown.hours, label: "часов"},
@@ -1049,12 +1044,12 @@ export default function App() {
                                         style={{
                                             border: "1.5px dashed rgba(140, 109, 86, 0.38)",
                                             borderRadius: 12,
-                                            padding: "10px 12px",
-                                            minWidth: 68,
+                                            padding: "10px 6px",
+                                            minWidth: 0,
                                         }}
                                     >
               <span
-                  className="font-caveat font-bold text-5xl"
+                  className="font-caveat font-bold text-4xl sm:text-5xl"
                   style={{color: "#5A8BB4", lineHeight: 1}}
               >
                 {String(value).padStart(2, "0")}
