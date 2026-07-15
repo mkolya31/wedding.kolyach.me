@@ -7,6 +7,8 @@ import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
 import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
 import toyAirplane from "@/imports/toy-airplane.png";
+import titleCloud from "@/imports/title-cloud.png";
+import cloudHeartDivider from "@/imports/cloud-heart-divider.png";
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -102,8 +104,21 @@ const FAQ_ITEMS = [
         ),
     },
     {
-        question: "Можно ли будет заказать блюда из меню, если мне что-то не подойдет?",
-        answer: "Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе по меню.",
+        question: "Можно ли будет дозаказать блюда по меню?",
+        answer: (
+            <>
+                Конечно, вы можете выбрать блюда и напитки, которые будут вам по душе.{" "}
+                <a
+                    href="/menu.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    Посмотреть меню
+                </a>
+                .
+            </>
+        ),
     },
     {
         question: "Можно ли принести свои напитки в ресторан?",
@@ -166,14 +181,65 @@ const Section = ({
     </section>
 );
 
-// Wobbly section title
-const SectionTitle = ({children}: { children: React.ReactNode }) => (
-    <h2
-        className="text-3xl font-caveat font-bold text-foreground text-center mb-6"
-        style={{lineHeight: 1.3}}
+const CloudTitle = ({
+                        children,
+                        as: Heading = "h2",
+                        className = "",
+                        textClassName = "text-3xl",
+                        textStyle = {},
+                        rotate = -0.6,
+                        maxWidth,
+                        padding = "24px 46px",
+                    }: {
+    children: React.ReactNode;
+    as?: "h1" | "h2";
+    className?: string;
+    textClassName?: string;
+    textStyle?: React.CSSProperties;
+    rotate?: number;
+    maxWidth?: number;
+    padding?: string;
+}) => (
+    <div
+        className={`relative mx-auto flex w-fit max-w-full items-center justify-center text-center ${className}`}
+        style={{
+            transform: `rotate(${rotate}deg)`,
+            width: maxWidth ? `min(100%, ${maxWidth}px)` : undefined,
+            boxSizing: "border-box",
+            padding,
+            zIndex: 0,
+        }}
     >
+        <img
+            src={titleCloud}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute select-none"
+            style={{
+                left: "50%",
+                top: "-18px",
+                width: "calc(100% + 48px)",
+                height: "calc(100% + 36px)",
+                objectFit: "fill",
+                transform: "translateX(-50%)",
+                zIndex: 0,
+                filter: "drop-shadow(5px 7px 0 rgba(45,43,110,0.10)) drop-shadow(0 10px 18px rgba(35,73,104,0.10))",
+            }}
+        />
+        <Heading
+            className={`relative font-caveat font-bold text-foreground text-center ${textClassName}`}
+            style={{lineHeight: 1.2, zIndex: 1, ...textStyle}}
+        >
+            {children}
+        </Heading>
+    </div>
+);
+
+// Cloud-like section title
+const SectionTitle = ({children}: { children: React.ReactNode }) => (
+    <CloudTitle className="mb-7">
         {children}
-    </h2>
+    </CloudTitle>
 );
 
 const FlightBanner = ({
@@ -344,26 +410,38 @@ const HeroFlightBanner = ({names}: { names: string }) => (
             knotY={46}
             style={{marginTop: -2, marginBottom: -5}}
         />
-        <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
-            <h1
-                className="font-caveat font-bold text-foreground"
-                style={{fontSize: 38, lineHeight: 1.05}}
-            >
-                {names}
-            </h1>
-        </FlightBanner>
+        <CloudTitle
+            as="h1"
+            textStyle={{fontSize: 38, lineHeight: 1.05}}
+            rotate={1}
+            maxWidth={330}
+            padding="26px 34px"
+        >
+            {names}
+        </CloudTitle>
+    </div>
+);
+
+const DividerImage = ({
+                          className = "",
+                      }: {
+    className?: string;
+}) => (
+    <div className={`flex w-full justify-center overflow-visible ${className}`} aria-hidden="true">
+        <img
+            src={cloudHeartDivider}
+            alt=""
+            className="block h-auto max-w-full select-none"
+            style={{
+                width: 720,
+            }}
+        />
     </div>
 );
 
 // Divider doodle
 const Divider = () => (
-    <div className="flex items-center justify-center gap-3 my-2">
-        <Heart className="w-4 h-4 opacity-60"/>
-        <svg width="80" height="8" viewBox="0 0 80 8">
-            <path d="M0,4 Q20,0 40,4 Q60,8 80,4" stroke="#234968" strokeWidth="1.5" fill="none" opacity="0.4"/>
-        </svg>
-        <Heart className="w-4 h-4 opacity-60"/>
-    </div>
+    <DividerImage className="mx-auto my-1 px-4"/>
 );
 
 // Form state type
@@ -371,7 +449,7 @@ type FormData = {
     name: string;
     attending: string;
     alcohol: string[];
-    mainCourse: string[];
+    mainCourse: string;
     transfer: string;
     hostingHelp: string;
     website: string;
@@ -387,7 +465,7 @@ export default function App() {
         name: "",
         attending: "",
         alcohol: [],
-        mainCourse: [],
+        mainCourse: "",
         transfer: "",
         hostingHelp: "",
         website: "",
@@ -395,6 +473,14 @@ export default function App() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const isFormComplete =
+        form.name.trim().length > 0 &&
+        form.attending.length > 0 &&
+        form.alcohol.length > 0 &&
+        form.mainCourse.length > 0 &&
+        form.transfer.length > 0 &&
+        form.hostingHelp.length > 0;
+    const isSubmitDisabled = isSubmitting || !isFormComplete;
 
     useEffect(() => {
         let frame = 0;
@@ -428,19 +514,15 @@ export default function App() {
         }));
     };
 
-    const handleMainCourse = (val: string) => {
-        setForm((f) => ({
-            ...f,
-            mainCourse: f.mainCourse.includes(val)
-                ? f.mainCourse.filter((course) => course !== val)
-                : [...f.mainCourse, val],
-        }));
-    };
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (isSubmitting) return;
+
+        if (!isFormComplete) {
+            setSubmitError("Пожалуйста, ответьте на все вопросы анкеты.");
+            return;
+        }
 
         const website = String(new window.FormData(e.currentTarget).get("website") ?? "");
 
@@ -452,7 +534,7 @@ export default function App() {
                 name: form.name,
                 i_will_come: form.attending,
                 alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse.join(", "),
+                meal: form.mainCourse,
                 need_transfer: form.transfer,
                 hosting_help: form.hostingHelp,
                 website,
@@ -506,51 +588,10 @@ export default function App() {
                 <section className="w-full max-w-lg mx-auto px-4 pt-4 pb-10 flex flex-col items-center">
                     <HeroFlightBanner names={`У ${CONFIG.groomName2} и ${CONFIG.brideName2}!`}/>
 
-                    <Divider/>
-
                     {/* Polaroid photos */}
                     <div className="relative w-full mt-8 px-2" style={{paddingBottom: 48}}>
-
-                        {/* Groom label — top-left, arrow points right-down to photo */}
-                        <div className="absolute" style={{left: 0, top: -8, zIndex: 2}}>
-            <span style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 20,
-                color: "#234968",
-                transform: "rotate(-3deg)",
-                display: "block"
-            }}>
-              жених
-            </span>
-                            <svg width="36" height="32" viewBox="0 0 36 32" fill="none">
-                                <path d="M4 4 Q18 10 30 26" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round"/>
-                                <path d="M24 24 L30 26 L27 19" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
-
-                        {/* Bride label — top-right, arrow points left-down to photo */}
-                        <div className="absolute" style={{right: 0, top: -8, zIndex: 2, textAlign: "right"}}>
-            <span style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 20,
-                color: "#234968",
-                transform: "rotate(3deg)",
-                display: "block"
-            }}>
-              невеста
-            </span>
-                            <svg width="36" height="32" viewBox="0 0 36 32" fill="none" style={{marginLeft: "auto"}}>
-                                <path d="M32 4 Q18 10 6 26" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round"/>
-                                <path d="M12 24 L6 26 L9 19" stroke="#234968" strokeWidth="1.5" fill="none"
-                                      strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
-
                         {/* Photos row */}
-                        <div className="flex justify-center items-end gap-4 pt-10">
+                        <div className="flex justify-center items-end gap-4">
                             {/* Floating hearts */}
                             <Heart className="w-4 h-4 absolute left-1 bottom-12 opacity-50"/>
                             <Heart className="w-3 h-3 absolute right-2 bottom-16 opacity-40"/>
@@ -576,6 +617,9 @@ export default function App() {
                                         display: "block"
                                     }}
                                 />
+                                <p className="font-caveat text-center text-2xl text-foreground mt-2 leading-none">
+                                    жених
+                                </p>
                             </div>
 
                             {/* Bride polaroid */}
@@ -599,6 +643,9 @@ export default function App() {
                                         display: "block"
                                     }}
                                 />
+                                <p className="font-caveat text-center text-2xl text-foreground mt-2 leading-none">
+                                    невеста
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -696,7 +743,7 @@ export default function App() {
 
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 3. КОНТАКТЫ ─────────────────────────────────────────────────────── */}
                 <Section id="contacts">
@@ -839,11 +886,11 @@ export default function App() {
                             <FormField label="Что бы вы предпочли в качестве горячего?">
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
-                                        <CheckboxOption
+                                        <RadioOption
                                             key={opt}
                                             label={opt}
-                                            checked={form.mainCourse.includes(opt)}
-                                            onChange={() => handleMainCourse(opt)}
+                                            checked={form.mainCourse === opt}
+                                            onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
                                         />
                                     ))}
                                 </div>
@@ -865,6 +912,9 @@ export default function App() {
 
                             {/* Hosting help */}
                             <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                                <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
+                                    От вас потребуется сказать несколько фраз, либо провести какую-то активность
+                                </p>
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да", "Нет"].map((opt) => (
                                         <RadioOption
@@ -879,24 +929,29 @@ export default function App() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitDisabled}
                                 className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
                                     borderRadius: 50,
-                                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                                    opacity: isSubmitting ? 0.75 : 1,
+                                    cursor: isSubmitDisabled ? "not-allowed" : "pointer",
+                                    opacity: isSubmitDisabled ? 0.55 : 1,
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
                                     transition: "transform 0.1s",
                                 }}
                                 onMouseDown={(e) => {
-                                    if (!isSubmitting) e.currentTarget.style.transform = "scale(0.97)";
+                                    if (!isSubmitDisabled) e.currentTarget.style.transform = "scale(0.97)";
                                 }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
                                 Отправить ответы
                             </button>
+                            {!isFormComplete ? (
+                                <p className="font-caveat text-base text-center text-foreground opacity-60 mt-3">
+                                    Ответьте на все вопросы, чтобы отправить анкету.
+                                </p>
+                            ) : null}
                             {submitError ? (
                                 <p className="font-caveat text-xl text-center text-red-700 mt-4">
                                     {submitError}
@@ -908,7 +963,7 @@ export default function App() {
                     </FlightBannerStack>
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 5. ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ─────────────────────────────────────── */}
                 <Section id="faq" className="pb-16">
@@ -937,7 +992,7 @@ export default function App() {
                     </FlightBannerStack>
                 </Section>
 
-                <WaveDivider flip/>
+                <WaveDivider/>
 
                 {/* ── 6. ТАЙМЕР ───────────────────────────────────────────────────────── */}
                 <Section id="zagsCountdown" className="pb-0">
@@ -1012,11 +1067,6 @@ export default function App() {
                             </div>
                         </FlightBanner>
                     </FlightBannerStack>
-                    <div className="flex justify-center mt-6 gap-3">
-                        <Heart className="w-6 h-6"/>
-                        <Heart className="w-4 h-4 mt-1"/>
-                        <Heart className="w-6 h-6"/>
-                    </div>
                 </Section>
 
                 <WaveDivider/>
@@ -1026,9 +1076,7 @@ export default function App() {
                     className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
                 >
                     {/* Top text */}
-                    <div className="self-start flex items-start gap-2 mb-2">
-                        <Heart className="w-6 h-6 mt-1"/>
-                        <Heart className="w-5 h-5 mt-2"/>
+                    <div className="self-start flex items-start mb-2">
                         <FlightBanner rotate={-1} maxWidth={270} padding="12px 18px 13px">
                             <p style={{
                                 fontFamily: "'Montserrat', sans-serif",
@@ -1058,14 +1106,15 @@ export default function App() {
                     />
 
                     {/* Names */}
-                    <FlightBanner rotate={1} maxWidth={360} padding="12px 18px 13px">
-                        <h2
-                            className="text-foreground text-center"
-                            style={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
-                        >
-                            Ваши почти муж и жена
-                        </h2>
-                    </FlightBanner>
+                    <CloudTitle
+                        rotate={1}
+                        maxWidth={360}
+                        textClassName="text-foreground"
+                        textStyle={{fontFamily: "'Montserrat', sans-serif", fontSize: 32, lineHeight: 1.15}}
+                        padding="25px 34px"
+                    >
+                        Ваши почти муж и жена
+                    </CloudTitle>
 
                     <FlightCable
                         height={48}
@@ -1103,22 +1152,11 @@ export default function App() {
                                 мы ждём вас
                             </p>
                         </div>
-                        {/* Hearts beside polaroid */}
-                        <div className="absolute right-4 top-1/2 flex flex-col gap-1"
-                             style={{transform: "translateY(-50%)"}}>
-                            <Heart className="w-7 h-7"/>
-                            <Heart className="w-5 h-5 ml-3"/>
-                        </div>
                     </div>
                 </section>
 
                 {/* Footer */}
                 <footer className="text-center pb-10">
-                    <div className="flex justify-center gap-2 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                            <Heart key={i} className="w-4 h-4 opacity-40"/>
-                        ))}
-                    </div>
                     <p className="font-caveat text-lg text-foreground opacity-50">
                         {CONFIG.groomName} & {CONFIG.brideName} • {new Date(CONFIG.weddingDate).getFullYear()}
                     </p>
@@ -1138,6 +1176,8 @@ const inputStyle: React.CSSProperties = {
     padding: "6px 4px",
     fontSize: 20,
 };
+
+const formControlActiveColor = "#234968";
 
 function FormField({label, children}: { label: string; children: React.ReactNode }) {
     return (
@@ -1177,7 +1217,7 @@ function RadioOption({
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              background: checked ? "#D4826A" : "transparent",
+              background: checked ? formControlActiveColor : "transparent",
               transition: "background 0.15s",
           }}
       >
@@ -1211,7 +1251,7 @@ function CheckboxOption({
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              background: checked ? "#234968" : "transparent",
+              background: checked ? formControlActiveColor : "transparent",
               transition: "background 0.15s",
           }}
       >
@@ -1227,19 +1267,8 @@ function CheckboxOption({
     );
 }
 
-function WaveDivider({flip = false}: { flip?: boolean }) {
+function WaveDivider() {
     return (
-        <svg
-            viewBox="0 0 400 30"
-            preserveAspectRatio="none"
-            className="w-full"
-            style={{height: 30, transform: flip ? "scaleY(-1)" : "none"}}
-        >
-            <path
-                d="M0,15 Q50,0 100,15 Q150,30 200,15 Q250,0 300,15 Q350,30 400,15 L400,30 L0,30 Z"
-                fill="#ffffff"
-                opacity="1"
-            />
-        </svg>
+        <DividerImage className="my-1 px-4"/>
     );
 }
