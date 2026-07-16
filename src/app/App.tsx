@@ -928,7 +928,7 @@ export default function App() {
                                 error={validationAttempted && form.hostingHelp.length === 0}
                             >
                                 <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
-                                    От вас потребуется сказать несколько фраз, либо провести какую-то активность
+                                    От вас потребуется сказать несколько фраз по сценарию, либо провести какую-то активность
                                 </p>
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да", "Нет"].map((opt) => (
