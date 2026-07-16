@@ -457,6 +457,7 @@ export default function App() {
     const zagsCountdown = useCountdown(CONFIG.zagsDate);
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
     const backgroundRef = useRef<HTMLDivElement | null>(null);
+    const successMessageRef = useRef<HTMLDivElement | null>(null);
 
     const [form, setForm] = useState<FormData>({
         name: "",
@@ -502,6 +503,19 @@ export default function App() {
             if (frame) window.cancelAnimationFrame(frame);
         };
     }, []);
+
+    useEffect(() => {
+        if (!form.submitted || !successMessageRef.current) return;
+
+        const frame = window.requestAnimationFrame(() => {
+            successMessageRef.current?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                block: "center",
+            });
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [form.submitted]);
 
     const handleAlcohol = (val: string) => {
         setForm((f) => ({
@@ -799,22 +813,24 @@ export default function App() {
                         </FlightBanner>
 
                         {form.submitted ? (
-                            <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
-                                <div className="text-center">
-                                    <div className="text-6xl mb-4">🎉</div>
-                                    <p className="font-caveat font-bold text-3xl text-foreground">
-                                        Спасибо, {form.name || "дорогой гость"}!
-                                    </p>
-                                    <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
-                                        Ждём вас на нашем торжестве!
-                                    </p>
-                                    <div className="flex justify-center gap-3 mt-6">
-                                        <Heart className="w-6 h-6"/>
-                                        <Heart className="w-5 h-5 mt-1"/>
-                                        <Heart className="w-6 h-6"/>
+                            <div ref={successMessageRef} className="flex w-full justify-center">
+                                <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
+                                    <div className="text-center">
+                                        <div className="text-6xl mb-4">🎉</div>
+                                        <p className="font-caveat font-bold text-3xl text-foreground">
+                                            Спасибо, {form.name || "дорогой гость"}!
+                                        </p>
+                                        <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
+                                            Ждём вас на нашем торжестве!
+                                        </p>
+                                        <div className="flex justify-center gap-3 mt-6">
+                                            <Heart className="w-6 h-6"/>
+                                            <Heart className="w-5 h-5 mt-1"/>
+                                            <Heart className="w-6 h-6"/>
+                                        </div>
                                     </div>
-                                </div>
-                            </FlightBanner>
+                                </FlightBanner>
+                            </div>
                         ) : (
                             <FlightBanner rotate={0.75} maxWidth={390} padding="28px 24px">
                                 <form onSubmit={handleSubmit} className="text-left" noValidate>
