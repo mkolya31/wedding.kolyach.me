@@ -451,10 +451,13 @@ type FormData = {
     submitted: boolean;
 };
 
+type SubmitPhase = "idle" | "submitting" | "success";
+
 export default function App() {
     const zagsCountdown = useCountdown(CONFIG.zagsDate);
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
     const backgroundRef = useRef<HTMLDivElement | null>(null);
+    const successMessageRef = useRef<HTMLDivElement | null>(null);
 
     const [form, setForm] = useState<FormData>({
         name: "",
@@ -466,8 +469,10 @@ export default function App() {
         website: "",
         submitted: false,
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle");
     const [submitError, setSubmitError] = useState("");
+    const [validationAttempted, setValidationAttempted] = useState(false);
+    const isSubmitting = submitPhase !== "idle";
     const isFormComplete =
         form.name.trim().length > 0 &&
         form.attending.length > 0 &&
@@ -475,7 +480,6 @@ export default function App() {
         form.mainCourse.length > 0 &&
         form.transfer.length > 0 &&
         form.hostingHelp.length > 0;
-    const isSubmitDisabled = isSubmitting || !isFormComplete;
 
     useEffect(() => {
         let frame = 0;
@@ -500,6 +504,19 @@ export default function App() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!form.submitted || !successMessageRef.current) return;
+
+        const frame = window.requestAnimationFrame(() => {
+            successMessageRef.current?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                block: "center",
+            });
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [form.submitted]);
+
     const handleAlcohol = (val: string) => {
         setForm((f) => ({
             ...f,
@@ -514,31 +531,37 @@ export default function App() {
 
         if (isSubmitting) return;
 
+        setValidationAttempted(true);
+
         if (!isFormComplete) {
-            setSubmitError("Пожалуйста, ответьте на все вопросы анкеты.");
+            setSubmitError("");
             return;
         }
 
         const website = String(new window.FormData(e.currentTarget).get("website") ?? "");
 
-        setIsSubmitting(true);
+        setSubmitPhase("submitting");
         setSubmitError("");
 
         try {
-            await submitRsvp({
-                name: form.name,
-                i_will_come: form.attending,
-                alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse,
-                need_transfer: form.transfer,
-                hosting_help: form.hostingHelp,
-                website,
-            });
+            await Promise.all([
+                submitRsvp({
+                    name: form.name,
+                    i_will_come: form.attending,
+                    alcohol: form.alcohol.join(", "),
+                    meal: form.mainCourse,
+                    need_transfer: form.transfer,
+                    hosting_help: form.hostingHelp,
+                    website,
+                }),
+                new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
+            ]);
+            setSubmitPhase("success");
+            await new Promise<void>((resolve) => window.setTimeout(resolve, 1650));
             setForm((f) => ({...f, submitted: true}));
         } catch {
+            setSubmitPhase("idle");
             setSubmitError("Не удалось отправить анкету. Попробуйте еще раз.");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -790,25 +813,27 @@ export default function App() {
                         </FlightBanner>
 
                         {form.submitted ? (
-                            <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
-                                <div className="text-center">
-                                    <div className="text-6xl mb-4">🎉</div>
-                                    <p className="font-caveat font-bold text-3xl text-foreground">
-                                        Спасибо, {form.name || "дорогой гость"}!
-                                    </p>
-                                    <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
-                                        Ждём вас на нашем торжестве!
-                                    </p>
-                                    <div className="flex justify-center gap-3 mt-6">
-                                        <Heart className="w-6 h-6"/>
-                                        <Heart className="w-5 h-5 mt-1"/>
-                                        <Heart className="w-6 h-6"/>
+                            <div ref={successMessageRef} className="flex w-full justify-center">
+                                <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
+                                    <div className="text-center">
+                                        <div className="text-6xl mb-4">🎉</div>
+                                        <p className="font-caveat font-bold text-3xl text-foreground">
+                                            Спасибо, {form.name || "дорогой гость"}!
+                                        </p>
+                                        <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
+                                            Ждём вас на нашем торжестве!
+                                        </p>
+                                        <div className="flex justify-center gap-3 mt-6">
+                                            <Heart className="w-6 h-6"/>
+                                            <Heart className="w-5 h-5 mt-1"/>
+                                            <Heart className="w-6 h-6"/>
+                                        </div>
                                     </div>
-                                </div>
-                            </FlightBanner>
+                                </FlightBanner>
+                            </div>
                         ) : (
                             <FlightBanner rotate={0.75} maxWidth={390} padding="28px 24px">
-                                <form onSubmit={handleSubmit} className="text-left">
+                                <form onSubmit={handleSubmit} className="text-left" noValidate>
                                 <div
                                     aria-hidden="true"
                                     style={{
@@ -837,20 +862,26 @@ export default function App() {
                                 </div>
 
                             {/* Name */}
-                            <FormField label="Ваше имя и фамилия">
+                            <FormField
+                                label="Ваше имя и фамилия"
+                                error={validationAttempted && form.name.trim().length === 0}
+                            >
                                 <input
                                     type="text"
-                                    required
                                     placeholder="Фемистоклюс Манилов"
                                     value={form.name}
                                     onChange={(e) => setForm((f) => ({...f, name: e.target.value}))}
+                                    aria-invalid={validationAttempted && form.name.trim().length === 0}
                                     className="w-full font-caveat text-xl text-foreground"
                                     style={inputStyle}
                                 />
                             </FormField>
 
                             {/* Attending */}
-                            <FormField label="Планируете ли вы присутствовать?">
+                            <FormField
+                                label="Планируете ли вы присутствовать?"
+                                error={validationAttempted && form.attending.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, буду!", "К сожалению, не смогу"].map((opt) => (
                                         <RadioOption
@@ -864,7 +895,10 @@ export default function App() {
                             </FormField>
 
                             {/* Alcohol */}
-                            <FormField label="Что вы предпочитаете в качестве напитков?">
+                            <FormField
+                                label="Что вы предпочитаете в качестве напитков?"
+                                error={validationAttempted && form.alcohol.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.alcoholOptions.map((opt) => (
                                         <CheckboxOption
@@ -878,7 +912,10 @@ export default function App() {
                             </FormField>
 
                             {/* Main course */}
-                            <FormField label="Что бы вы предпочли в качестве горячего?">
+                            <FormField
+                                label="Что бы вы предпочли в качестве горячего?"
+                                error={validationAttempted && form.mainCourse.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
                                         <RadioOption
@@ -892,7 +929,10 @@ export default function App() {
                             </FormField>
 
                             {/* Transfer */}
-                            <FormField label="Потребуется ли вам трансфер?">
+                            <FormField
+                                label="Потребуется ли вам трансфер?"
+                                error={validationAttempted && form.transfer.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
                                         <RadioOption
@@ -906,9 +946,12 @@ export default function App() {
                             </FormField>
 
                             {/* Hosting help */}
-                            <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                            <FormField
+                                label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?"
+                                error={validationAttempted && form.hostingHelp.length === 0}
+                            >
                                 <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
-                                    От вас потребуется сказать несколько фраз, либо провести какую-то активность
+                                    От вас потребуется сказать несколько фраз по сценарию, либо провести какую-то активность
                                 </p>
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да", "Нет"].map((opt) => (
@@ -924,29 +967,60 @@ export default function App() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitDisabled}
-                                className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
+                                className={`submit-button w-full mt-6 py-4 font-caveat font-bold text-base text-white ${
+                                    submitPhase === "submitting"
+                                        ? "submit-button--busy"
+                                        : submitPhase === "success"
+                                            ? "submit-button--success"
+                                            : ""
+                                }`}
+                                aria-busy={submitPhase === "submitting"}
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
                                     borderRadius: 50,
-                                    cursor: isSubmitDisabled ? "not-allowed" : "pointer",
-                                    opacity: isSubmitDisabled ? 0.55 : 1,
+                                    cursor: "pointer",
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
                                     transition: "transform 0.1s",
                                 }}
                                 onMouseDown={(e) => {
-                                    if (!isSubmitDisabled) e.currentTarget.style.transform = "scale(0.97)";
+                                    e.currentTarget.style.transform = "scale(0.97)";
                                 }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
-                                Отправить ответы
+                                {submitPhase === "idle" ? (
+                                    <span className="submit-button__idle">Отправить ответы</span>
+                                ) : null}
+                                {submitPhase === "submitting" ? (
+                                    <>
+                                        <svg
+                                            className="submit-flight-track"
+                                            viewBox="0 0 320 56"
+                                            preserveAspectRatio="none"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M-20 40 C75 -5 220 -3 340 30" pathLength="100"/>
+                                        </svg>
+                                        <span className="submit-plane-runner" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M2 11.5 22 2.5 15.2 21.5 10.8 13.2 2 11.5Z"/>
+                                                <path d="m10.8 13.2 11.2-10.7M10.8 13.2l4.4 8.3"/>
+                                            </svg>
+                                        </span>
+                                        <span className="submit-button__status" role="status">
+                                            Ответы отправляются…
+                                        </span>
+                                    </>
+                                ) : null}
+                                {submitPhase === "success" ? (
+                                    <span className="submit-button__success" role="status">
+                                        <svg viewBox="0 0 24 22" aria-hidden="true">
+                                            <path d="M12 20S2 13 2 7a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 6-10 13-10 13Z"/>
+                                        </svg>
+                                        Ответы отправлены!
+                                    </span>
+                                ) : null}
                             </button>
-                            {!isFormComplete ? (
-                                <p className="font-caveat text-base text-center text-foreground opacity-60 mt-3">
-                                    Ответьте на все вопросы, чтобы отправить анкету.
-                                </p>
-                            ) : null}
                             {submitError ? (
                                 <p className="font-caveat text-xl text-center text-red-700 mt-4">
                                     {submitError}
@@ -1174,7 +1248,15 @@ const inputStyle: React.CSSProperties = {
 
 const formControlActiveColor = "#234968";
 
-function FormField({label, children}: { label: string; children: React.ReactNode }) {
+function FormField({
+                       label,
+                       children,
+                       error = false,
+                   }: {
+    label: string;
+    children: React.ReactNode;
+    error?: boolean;
+}) {
     return (
         <div className="mb-6">
             <label
@@ -1184,6 +1266,11 @@ function FormField({label, children}: { label: string; children: React.ReactNode
                 {label}
             </label>
             {children}
+            {error ? (
+                <p className="font-caveat text-lg text-red-700 mt-2" role="alert">
+                    Пожалуйста, заполните это поле.
+                </p>
+            ) : null}
         </div>
     );
 }
