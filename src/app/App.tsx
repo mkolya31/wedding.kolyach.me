@@ -451,6 +451,8 @@ type FormData = {
     submitted: boolean;
 };
 
+type SubmitPhase = "idle" | "submitting" | "success";
+
 export default function App() {
     const zagsCountdown = useCountdown(CONFIG.zagsDate);
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
@@ -466,9 +468,10 @@ export default function App() {
         website: "",
         submitted: false,
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle");
     const [submitError, setSubmitError] = useState("");
     const [validationAttempted, setValidationAttempted] = useState(false);
+    const isSubmitting = submitPhase !== "idle";
     const isFormComplete =
         form.name.trim().length > 0 &&
         form.attending.length > 0 &&
@@ -523,24 +526,28 @@ export default function App() {
 
         const website = String(new window.FormData(e.currentTarget).get("website") ?? "");
 
-        setIsSubmitting(true);
+        setSubmitPhase("submitting");
         setSubmitError("");
 
         try {
-            await submitRsvp({
-                name: form.name,
-                i_will_come: form.attending,
-                alcohol: form.alcohol.join(", "),
-                meal: form.mainCourse,
-                need_transfer: form.transfer,
-                hosting_help: form.hostingHelp,
-                website,
-            });
+            await Promise.all([
+                submitRsvp({
+                    name: form.name,
+                    i_will_come: form.attending,
+                    alcohol: form.alcohol.join(", "),
+                    meal: form.mainCourse,
+                    need_transfer: form.transfer,
+                    hosting_help: form.hostingHelp,
+                    website,
+                }),
+                new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
+            ]);
+            setSubmitPhase("success");
+            await new Promise<void>((resolve) => window.setTimeout(resolve, 1650));
             setForm((f) => ({...f, submitted: true}));
         } catch {
+            setSubmitPhase("idle");
             setSubmitError("Не удалось отправить анкету. Попробуйте еще раз.");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -944,7 +951,14 @@ export default function App() {
 
                             <button
                                 type="submit"
-                                className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
+                                className={`submit-button w-full mt-6 py-4 font-caveat font-bold text-base text-white ${
+                                    submitPhase === "submitting"
+                                        ? "submit-button--busy"
+                                        : submitPhase === "success"
+                                            ? "submit-button--success"
+                                            : ""
+                                }`}
+                                aria-busy={submitPhase === "submitting"}
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
@@ -958,7 +972,38 @@ export default function App() {
                                 }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
-                                Отправить ответы
+                                {submitPhase === "idle" ? (
+                                    <span className="submit-button__idle">Отправить ответы</span>
+                                ) : null}
+                                {submitPhase === "submitting" ? (
+                                    <>
+                                        <svg
+                                            className="submit-flight-track"
+                                            viewBox="0 0 320 56"
+                                            preserveAspectRatio="none"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M-20 40 C75 -5 220 -3 340 30" pathLength="100"/>
+                                        </svg>
+                                        <span className="submit-plane-runner" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M2 11.5 22 2.5 15.2 21.5 10.8 13.2 2 11.5Z"/>
+                                                <path d="m10.8 13.2 11.2-10.7M10.8 13.2l4.4 8.3"/>
+                                            </svg>
+                                        </span>
+                                        <span className="submit-button__status" role="status">
+                                            Ответы отправляются…
+                                        </span>
+                                    </>
+                                ) : null}
+                                {submitPhase === "success" ? (
+                                    <span className="submit-button__success" role="status">
+                                        <svg viewBox="0 0 24 22" aria-hidden="true">
+                                            <path d="M12 20S2 13 2 7a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 6-10 13-10 13Z"/>
+                                        </svg>
+                                        Ответы отправлены!
+                                    </span>
+                                ) : null}
                             </button>
                             {submitError ? (
                                 <p className="font-caveat text-xl text-center text-red-700 mt-4">
