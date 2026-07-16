@@ -468,6 +468,7 @@ export default function App() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const [validationAttempted, setValidationAttempted] = useState(false);
     const isFormComplete =
         form.name.trim().length > 0 &&
         form.attending.length > 0 &&
@@ -475,7 +476,6 @@ export default function App() {
         form.mainCourse.length > 0 &&
         form.transfer.length > 0 &&
         form.hostingHelp.length > 0;
-    const isSubmitDisabled = isSubmitting || !isFormComplete;
 
     useEffect(() => {
         let frame = 0;
@@ -514,8 +514,10 @@ export default function App() {
 
         if (isSubmitting) return;
 
+        setValidationAttempted(true);
+
         if (!isFormComplete) {
-            setSubmitError("Пожалуйста, ответьте на все вопросы анкеты.");
+            setSubmitError("");
             return;
         }
 
@@ -808,7 +810,7 @@ export default function App() {
                             </FlightBanner>
                         ) : (
                             <FlightBanner rotate={0.75} maxWidth={390} padding="28px 24px">
-                                <form onSubmit={handleSubmit} className="text-left">
+                                <form onSubmit={handleSubmit} className="text-left" noValidate>
                                 <div
                                     aria-hidden="true"
                                     style={{
@@ -837,20 +839,26 @@ export default function App() {
                                 </div>
 
                             {/* Name */}
-                            <FormField label="Ваше имя и фамилия">
+                            <FormField
+                                label="Ваше имя и фамилия"
+                                error={validationAttempted && form.name.trim().length === 0}
+                            >
                                 <input
                                     type="text"
-                                    required
                                     placeholder="Фемистоклюс Манилов"
                                     value={form.name}
                                     onChange={(e) => setForm((f) => ({...f, name: e.target.value}))}
+                                    aria-invalid={validationAttempted && form.name.trim().length === 0}
                                     className="w-full font-caveat text-xl text-foreground"
                                     style={inputStyle}
                                 />
                             </FormField>
 
                             {/* Attending */}
-                            <FormField label="Планируете ли вы присутствовать?">
+                            <FormField
+                                label="Планируете ли вы присутствовать?"
+                                error={validationAttempted && form.attending.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, буду!", "К сожалению, не смогу"].map((opt) => (
                                         <RadioOption
@@ -864,7 +872,10 @@ export default function App() {
                             </FormField>
 
                             {/* Alcohol */}
-                            <FormField label="Что вы предпочитаете в качестве напитков?">
+                            <FormField
+                                label="Что вы предпочитаете в качестве напитков?"
+                                error={validationAttempted && form.alcohol.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.alcoholOptions.map((opt) => (
                                         <CheckboxOption
@@ -878,7 +889,10 @@ export default function App() {
                             </FormField>
 
                             {/* Main course */}
-                            <FormField label="Что бы вы предпочли в качестве горячего?">
+                            <FormField
+                                label="Что бы вы предпочли в качестве горячего?"
+                                error={validationAttempted && form.mainCourse.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {CONFIG.form.mainCourseOptions.map((opt) => (
                                         <RadioOption
@@ -892,7 +906,10 @@ export default function App() {
                             </FormField>
 
                             {/* Transfer */}
-                            <FormField label="Потребуется ли вам трансфер?">
+                            <FormField
+                                label="Потребуется ли вам трансфер?"
+                                error={validationAttempted && form.transfer.length === 0}
+                            >
                                 <div className="flex flex-col gap-2 mt-1">
                                     {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
                                         <RadioOption
@@ -906,7 +923,10 @@ export default function App() {
                             </FormField>
 
                             {/* Hosting help */}
-                            <FormField label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?">
+                            <FormField
+                                label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?"
+                                error={validationAttempted && form.hostingHelp.length === 0}
+                            >
                                 <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
                                     От вас потребуется сказать несколько фраз, либо провести какую-то активность
                                 </p>
@@ -924,29 +944,22 @@ export default function App() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitDisabled}
                                 className="w-full mt-6 py-4 font-caveat font-bold text-base text-white"
                                 style={{
                                     background: "#5A8BB4",
                                     border: "none",
                                     borderRadius: 50,
-                                    cursor: isSubmitDisabled ? "not-allowed" : "pointer",
-                                    opacity: isSubmitDisabled ? 0.55 : 1,
+                                    cursor: "pointer",
                                     boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
                                     transition: "transform 0.1s",
                                 }}
                                 onMouseDown={(e) => {
-                                    if (!isSubmitDisabled) e.currentTarget.style.transform = "scale(0.97)";
+                                    e.currentTarget.style.transform = "scale(0.97)";
                                 }}
                                 onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
                             >
                                 Отправить ответы
                             </button>
-                            {!isFormComplete ? (
-                                <p className="font-caveat text-base text-center text-foreground opacity-60 mt-3">
-                                    Ответьте на все вопросы, чтобы отправить анкету.
-                                </p>
-                            ) : null}
                             {submitError ? (
                                 <p className="font-caveat text-xl text-center text-red-700 mt-4">
                                     {submitError}
@@ -1174,7 +1187,15 @@ const inputStyle: React.CSSProperties = {
 
 const formControlActiveColor = "#234968";
 
-function FormField({label, children}: { label: string; children: React.ReactNode }) {
+function FormField({
+                       label,
+                       children,
+                       error = false,
+                   }: {
+    label: string;
+    children: React.ReactNode;
+    error?: boolean;
+}) {
     return (
         <div className="mb-6">
             <label
@@ -1184,6 +1205,11 @@ function FormField({label, children}: { label: string; children: React.ReactNode
                 {label}
             </label>
             {children}
+            {error ? (
+                <p className="font-caveat text-lg text-red-700 mt-2" role="alert">
+                    Пожалуйста, заполните это поле.
+                </p>
+            ) : null}
         </div>
     );
 }
