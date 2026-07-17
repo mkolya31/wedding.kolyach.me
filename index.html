@@ -1,6 +1,6 @@
 
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="ru">
     <head>
       
       <meta charset="UTF-8" />
@@ -8,15 +8,285 @@
       <title>Сайт-приглашение на свадьбу</title>
       <meta name="description" content="Create a customizable, charming wedding invitation site with countdown, event details, guest RSVP, and direct Telegram chat for seamless communication." />
       <meta name="robots" content="noindex, nofollow" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      <style>
+        html, body { height: 100%; margin: 0; }
+        html.page-is-loading { overflow: hidden; }
+        body { background: #f9edd9; }
+        #root { height: 100%; }
+
+        .page-loader {
+          --page-loader-flight-duration: 2.4s;
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          padding: 24px;
+          box-sizing: border-box;
+          color: #234968;
+          background:
+            radial-gradient(circle at 13% 18%, rgba(216, 112, 118, 0.35) 0 4px, transparent 5px),
+            radial-gradient(circle at 84% 24%, rgba(126, 154, 102, 0.36) 0 5px, transparent 6px),
+            radial-gradient(circle at 22% 82%, rgba(126, 154, 102, 0.3) 0 4px, transparent 5px),
+            radial-gradient(circle at 88% 78%, rgba(216, 112, 118, 0.3) 0 3px, transparent 4px),
+            #f9edd9;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transition: opacity 420ms ease, visibility 420ms ease;
+        }
+
+        .page-loader::before,
+        .page-loader::after {
+          content: "";
+          position: absolute;
+          width: 180px;
+          height: 64px;
+          border-radius: 50%;
+          background: rgba(253, 245, 230, 0.72);
+          filter: blur(1px);
+          box-shadow:
+            48px -18px 0 rgba(253, 245, 230, 0.65),
+            92px 6px 0 rgba(253, 245, 230, 0.58);
+        }
+
+        .page-loader::before {
+          top: 10%;
+          left: -86px;
+          transform: rotate(-8deg);
+        }
+
+        .page-loader::after {
+          right: -68px;
+          bottom: 12%;
+          transform: rotate(9deg) scale(0.82);
+        }
+
+        .page-loader.is-visible {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+
+        .page-loader.is-leaving {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+
+        .page-loader__content {
+          position: relative;
+          z-index: 1;
+          width: min(100%, 380px);
+          text-align: center;
+          opacity: 0;
+          transform: translateY(6px);
+          transition: transform 420ms cubic-bezier(0.22, 0.8, 0.35, 1), opacity 220ms ease;
+        }
+
+        .page-loader.is-animated .page-loader__content {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .page-loader.is-leaving .page-loader__content {
+          opacity: 0;
+          transform: translateY(-28px) scale(0.96);
+        }
+
+        .page-loader__flight {
+          display: block;
+          width: 100%;
+          height: auto;
+          overflow: visible;
+          filter: drop-shadow(0 8px 10px rgba(35, 73, 104, 0.12));
+        }
+
+        .page-loader__route {
+          fill: none;
+          stroke: #8c6d56;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-dasharray: 5 7;
+          animation: page-loader-route var(--page-loader-flight-duration) linear infinite;
+          animation-play-state: paused;
+        }
+
+        .page-loader__plane-shape {
+          fill: #fdf5e6;
+          stroke: #234968;
+          stroke-width: 2;
+          stroke-linejoin: round;
+        }
+
+        .page-loader__plane-line {
+          fill: none;
+          stroke: #234968;
+          stroke-width: 1.6;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .page-loader__plane-moving {
+          offset-path: path("M160 15 C184.1 15 206 24.2 206 39.9 C206 55.6 184.1 77.7 160 100 C135.9 122.3 114 144.4 114 160.1 C114 175.8 135.9 185 160 185 C184.1 185 206 175.8 206 160.1 C206 144.4 184.1 122.3 160 100 C135.9 77.7 114 55.6 114 39.9 C114 24.2 135.9 15 160 15");
+          offset-distance: 0%;
+          offset-rotate: auto 35deg;
+          animation: page-loader-plane var(--page-loader-flight-duration) linear infinite;
+          animation-play-state: paused;
+        }
+
+        .page-loader__heart {
+          fill: #d87076;
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: page-loader-heart var(--page-loader-flight-duration) linear infinite;
+          animation-play-state: paused;
+        }
+
+        .page-loader__plane-static { display: none; }
+
+        .page-loader__label {
+          display: inline-block;
+          margin-top: -8px;
+          padding: 15px 25px 16px;
+          border: 2px solid rgba(140, 109, 86, 0.4);
+          border-radius: 14px;
+          background: #fdf5e6;
+          box-shadow: 5px 7px 0 rgba(45, 43, 110, 0.1), 0 10px 22px rgba(35, 73, 104, 0.1);
+          transform: rotate(-0.8deg);
+        }
+
+        .page-loader__text {
+          margin: 0;
+          font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-size: clamp(20px, 6vw, 25px);
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        .page-loader__names {
+          margin: 12px 0 0;
+          font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          opacity: 0.58;
+        }
+
+        .page-loader__dots {
+          display: inline-flex;
+          width: 24px;
+          justify-content: space-between;
+          margin-left: 3px;
+          vertical-align: baseline;
+        }
+
+        .page-loader__dot {
+          animation: page-loader-dot 1.2s ease-in-out infinite;
+          animation-play-state: paused;
+        }
+
+        .page-loader__dot:nth-child(2) { animation-delay: 0.16s; }
+        .page-loader__dot:nth-child(3) { animation-delay: 0.32s; }
+
+        .page-loader.is-animated .page-loader__route,
+        .page-loader.is-animated .page-loader__heart,
+        .page-loader.is-animated .page-loader__dot,
+        .page-loader.is-animated .page-loader__plane-moving {
+          animation-play-state: running;
+        }
+
+        @keyframes page-loader-plane {
+          to { offset-distance: 100%; }
+        }
+
+        @keyframes page-loader-route {
+          to { stroke-dashoffset: -24; }
+        }
+
+        @keyframes page-loader-heart {
+          0%, 50%, 100% { opacity: 0.55; transform: scale(0.72); }
+          25%, 75% { opacity: 1; transform: scale(1.15); }
+        }
+
+        @keyframes page-loader-dot {
+          0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .page-loader,
+          .page-loader__content,
+          .page-loader__route,
+          .page-loader__heart,
+          .page-loader__dot {
+            animation: none;
+            transition-duration: 120ms;
+          }
+
+          .page-loader__plane-moving { display: none; }
+          .page-loader__plane-static { display: block; }
+        }
+      </style>
       
     </head>
 
     <body>
-      
+      <div id="page-loader" class="page-loader is-visible" role="status" aria-live="polite" aria-label="Страница загружается">
+        <div class="page-loader__content">
+          <svg class="page-loader__flight" viewBox="0 0 320 210" aria-hidden="true">
+            <path
+              id="page-loader-route"
+              class="page-loader__route"
+              d="M160 15 C184.1 15 206 24.2 206 39.9 C206 55.6 184.1 77.7 160 100 C135.9 122.3 114 144.4 114 160.1 C114 175.8 135.9 185 160 185 C184.1 185 206 175.8 206 160.1 C206 144.4 184.1 122.3 160 100 C135.9 77.7 114 55.6 114 39.9 C114 24.2 135.9 15 160 15"
+            />
+
+            <path class="page-loader__heart" d="M160 98 C157 92 147 94 148 102 C150 108 160 113 160 113 C160 113 170 108 172 102 C173 94 163 92 160 98Z" />
+
+            <g class="page-loader__plane-moving">
+              <g transform="translate(-18 -16)">
+                <path class="page-loader__plane-shape" d="M3 14 L35 2 L26 31 L18 19 L3 14Z" />
+                <path class="page-loader__plane-line" d="M18 19 L35 2 M18 19 L26 31" />
+              </g>
+            </g>
+
+            <g class="page-loader__plane-static" transform="translate(142 84) rotate(15)">
+              <path class="page-loader__plane-shape" d="M3 14 L35 2 L26 31 L18 19 L3 14Z" />
+              <path class="page-loader__plane-line" d="M18 19 L35 2 M18 19 L26 31" />
+            </g>
+          </svg>
+
+          <div class="page-loader__label">
+            <p class="page-loader__text">
+              Готовим приглашение<span class="page-loader__dots" aria-hidden="true"><span class="page-loader__dot">.</span><span class="page-loader__dot">.</span><span class="page-loader__dot">.</span></span>
+            </p>
+            <p class="page-loader__names">Максим &amp; Анфиса</p>
+          </div>
+        </div>
+      </div>
+
       <div id="root"></div>
+      <script>
+        (() => {
+          const loader = document.getElementById("page-loader");
+          if (!loader) return;
+
+          document.documentElement.classList.add("page-is-loading");
+          loader.dataset.startedAt = String(performance.now());
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              if (document.documentElement.contains(loader) && !loader.classList.contains("is-leaving")) {
+                loader.classList.add("is-animated");
+              }
+            });
+          });
+        })();
+      </script>
       <script type="module" src="/src/main.tsx"></script>
-      
+
     </body>
   </html>
-  

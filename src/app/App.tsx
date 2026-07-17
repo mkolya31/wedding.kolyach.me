@@ -484,6 +484,15 @@ type FormData = {
 
 type SubmitPhase = "idle" | "submitting" | "success";
 
+const preloadImage = (src: string) => new Promise<void>((resolve) => {
+    const image = new window.Image();
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.src = src;
+
+    if (image.complete) resolve();
+});
+
 export default function App() {
     const zagsCountdown = useCountdown(CONFIG.zagsDate);
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
@@ -514,6 +523,51 @@ export default function App() {
             form.transfer.length > 0 &&
             form.hostingHelp.length > 0
         ));
+
+    useEffect(() => {
+        const loader = document.getElementById("page-loader");
+        if (!loader) return;
+
+        const startedAt = Number(loader.dataset.startedAt) || window.performance.now();
+        const preferredTexture = window.matchMedia("(min-width: 768px)").matches
+            ? gardenTextureDesktop
+            : gardenTexture;
+        const criticalImages = [preferredTexture, toyAirplane, titleCloud, groomPhoto, bridePhoto];
+        let finished = false;
+        let hideTimer = 0;
+        let removeTimer = 0;
+
+        const finishLoading = () => {
+            if (finished) return;
+            finished = true;
+
+            const releasePage = () => {
+                document.documentElement.classList.remove("page-is-loading");
+
+                if (!loader.classList.contains("is-visible")) {
+                    loader.remove();
+                    return;
+                }
+
+                loader.classList.add("is-leaving");
+                removeTimer = window.setTimeout(() => loader.remove(), 450);
+            };
+
+            const minimumLoaderDuration = 1000;
+            const elapsed = window.performance.now() - startedAt;
+            hideTimer = window.setTimeout(releasePage, Math.max(0, minimumLoaderDuration - elapsed));
+        };
+
+        void Promise.all(criticalImages.map(preloadImage)).then(finishLoading);
+        const failsafeTimer = window.setTimeout(finishLoading, 10000);
+
+        return () => {
+            window.clearTimeout(failsafeTimer);
+            window.clearTimeout(hideTimer);
+            window.clearTimeout(removeTimer);
+            document.documentElement.classList.remove("page-is-loading");
+        };
+    }, []);
 
     useEffect(() => {
         let frame = 0;
