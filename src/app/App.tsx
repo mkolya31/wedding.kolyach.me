@@ -6,7 +6,7 @@ import bridePhoto from "@/imports/bride.jpg";
 import couplePhoto from "@/imports/photo_5335006619462476917_y.jpg";
 import gardenTexture from "@/imports/garden-texture.png";
 import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
-import toyAirplane from "@/imports/toy-airplane.png";
+import toyAirplane from "@/imports/toy-airplane-detailed.png";
 import titleCloud from "@/imports/title-cloud.png";
 import cloudHeartDivider from "@/imports/cloud-heart-divider.png";
 
