@@ -51,7 +51,12 @@ const CONFIG = {
     telegram: {
         groomHandle: "@m_kolyachenko",
         brideHandle: "@anfiss_ka",
-        chatHandle: "@anfisamaksim", // замените на ссылку вашего чата
+    },
+
+    // Общие чаты гостей
+    chats: {
+        telegramUrl: "https://t.me/anfisamaksim",
+        maxUrl: "https://max.ru/join/pfGjMaB8ngjrU5EQwe4Elj4XZCvwj7AYIjl-R72vzww",
     },
 
     // Анкета гостя — настройки опций
@@ -63,6 +68,32 @@ const CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FAQ_ITEMS = [
+    {
+        question: "Где можно задать вопрос?",
+        answer: (
+            <>
+                Если не нашли ответ ниже, напишите в общем чате. Выберите удобный мессенджер: {" "}
+                <a
+                    href={CONFIG.chats.telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    Telegram
+                </a>{" "}
+                или {" "}
+                <a
+                    href={CONFIG.chats.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    MAX
+                </a>
+                .
+            </>
+        ),
+    },
     {
         question: "Будет ли дресскод на свадьбе?",
         answer: "Нет, можете прийти в том, в чем вам будет комфортно веселиться и танцевать!",
@@ -473,13 +504,16 @@ export default function App() {
     const [submitError, setSubmitError] = useState("");
     const [validationAttempted, setValidationAttempted] = useState(false);
     const isSubmitting = submitPhase !== "idle";
+    const isDeclining = form.attending === "К сожалению, не смогу";
     const isFormComplete =
         form.name.trim().length > 0 &&
         form.attending.length > 0 &&
-        form.alcohol.length > 0 &&
-        form.mainCourse.length > 0 &&
-        form.transfer.length > 0 &&
-        form.hostingHelp.length > 0;
+        (isDeclining || (
+            form.alcohol.length > 0 &&
+            form.mainCourse.length > 0 &&
+            form.transfer.length > 0 &&
+            form.hostingHelp.length > 0
+        ));
 
     useEffect(() => {
         let frame = 0;
@@ -524,6 +558,13 @@ export default function App() {
                 ? f.alcohol.filter((a) => a !== val)
                 : [...f.alcohol, val],
         }));
+    };
+
+    const handleEditResponses = () => {
+        setSubmitPhase("idle");
+        setSubmitError("");
+        setValidationAttempted(false);
+        setForm((f) => ({...f, submitted: false}));
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -763,71 +804,101 @@ export default function App() {
 
                 <WaveDivider/>
 
-                {/* ── 3. КОНТАКТЫ ─────────────────────────────────────────────────────── */}
-                <Section id="contacts">
-                    <SectionTitle>Общий чат</SectionTitle>
-                    <FlightBannerStack>
-                        <FlightBanner rotate={0.75} maxWidth={360}>
-                            <p className="font-caveat text-xl text-center text-foreground opacity-80">
-                                Вступайте в наш чат в Telegram. Там мы сможем ответить на ваши вопросы, обсудить предстоящее мероприятие и обменяться фотографиями лучших моментов. 
-                            </p>
-                        </FlightBanner>
-
-                        {/* Общий чат */}
-                        <a
-                            href={`https://t.me/${CONFIG.telegram.chatHandle.replace("@", "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex w-full justify-center"
-                            style={{textDecoration: "none"}}
-                        >
-                            <FlightBanner rotate={-0.75} maxWidth={390} padding="18px 24px">
-                                <span className="flex items-center gap-4 text-left">
-                                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style={{flexShrink: 0}}>
-                                        <circle cx="20" cy="20" r="18" stroke="#234968" strokeWidth="2" fill="none"/>
-                                        <path d="M12 14 Q20 10 28 14 Q32 18 28 22 Q24 26 20 24 L16 28 L18 23 Q10 20 12 14Z"
-                                              stroke="#234968" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                                    </svg>
-                                    <span>
-                                        <span
-                                            className="font-caveat font-bold text-xl text-foreground block">Общий чат гостей</span>
-                                        <span
-                                            className="font-caveat text-lg text-foreground opacity-60">{CONFIG.telegram.chatHandle}</span>
-                                    </span>
-                                </span>
-                            </FlightBanner>
-                        </a>
-                    </FlightBannerStack>
-                </Section>
-
-                <WaveDivider/>
-
-                {/* ── 4. АНКЕТА ГОСТЯ ──────────────────────────────────────────────────── */}
+                {/* ── 3. АНКЕТА ГОСТЯ ──────────────────────────────────────────────────── */}
                 <Section id="rsvp" className="pb-16">
                     <SectionTitle>Анкета гостя</SectionTitle>
                     <FlightBannerStack>
-                        <FlightBanner rotate={-0.75} maxWidth={360}>
-                            <p className="font-caveat text-xl text-center text-foreground opacity-70">
-                                Заполните, пожалуйста, чтобы мы всё подготовили!
-                            </p>
-                        </FlightBanner>
+                        {!form.submitted ? (
+                            <FlightBanner rotate={-0.75} maxWidth={360}>
+                                <p className="font-caveat text-xl text-center text-foreground opacity-70">
+                                    Заполните, пожалуйста, чтобы мы всё подготовили!
+                                </p>
+                            </FlightBanner>
+                        ) : null}
 
                         {form.submitted ? (
                             <div ref={successMessageRef} className="flex w-full justify-center">
-                                <FlightBanner rotate={0.75} maxWidth={390} padding="36px 24px">
+                                <FlightBanner rotate={0.75} maxWidth={390} padding="32px 24px">
                                     <div className="text-center">
-                                        <div className="text-6xl mb-4">🎉</div>
+                                        <div className="text-6xl mb-4">
+                                            {form.attending === "Да, буду!" ? "🎉" : "😔"}
+                                        </div>
                                         <p className="font-caveat font-bold text-3xl text-foreground">
                                             Спасибо, {form.name || "дорогой гость"}!
                                         </p>
                                         <p className="font-caveat text-xl text-foreground opacity-70 mt-3">
-                                            Ждём вас на нашем торжестве!
+                                            Ответы сохранены.
                                         </p>
-                                        <div className="flex justify-center gap-3 mt-6">
-                                            <Heart className="w-6 h-6"/>
-                                            <Heart className="w-5 h-5 mt-1"/>
-                                            <Heart className="w-6 h-6"/>
-                                        </div>
+                                        {form.attending === "Да, буду!" ? (
+                                            <div
+                                                className="mt-6 pt-5"
+                                                style={{borderTop: "1.5px dashed rgba(140, 109, 86, 0.42)"}}
+                                            >
+                                                <p className="font-caveat text-xl text-foreground opacity-80">
+                                                    Присоединяйтесь к общему чату — там будут важные новости,
+                                                    ответы на вопросы и фотографии после свадьбы.
+                                                </p>
+                                                <p className="font-caveat font-bold text-xl text-foreground mt-4">
+                                                    Выберите удобный мессенджер
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                                    <a
+                                                        href={CONFIG.chats.telegramUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex min-h-12 items-center justify-center px-3 py-3 font-caveat font-bold text-lg text-white"
+                                                        style={{
+                                                            background: "#5A8BB4",
+                                                            borderRadius: 50,
+                                                            textDecoration: "none",
+                                                            boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
+                                                        }}
+                                                    >
+                                                        Telegram
+                                                    </a>
+                                                    <a
+                                                        href={CONFIG.chats.maxUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex min-h-12 items-center justify-center px-3 py-3 font-caveat font-bold text-lg text-white"
+                                                        style={{
+                                                            background: "#5A8BB4",
+                                                            borderRadius: 50,
+                                                            textDecoration: "none",
+                                                            boxShadow: "3px 3px 0 rgba(45,43,110,0.2)",
+                                                        }}
+                                                    >
+                                                        MAX
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-5">
+                                                <p className="font-caveat text-xl text-foreground opacity-80">
+                                                    Нам жаль, что вы не сможете быть с нами.
+                                                </p>
+                                                <p className="font-caveat text-xl text-foreground opacity-80 mt-3">
+                                                    Если передумаете, просто заполните анкету ещё раз.
+                                                </p>
+                                            </div>
+                                        )}
+                                        <p className="font-caveat text-lg text-foreground opacity-70 mt-6">
+                                            Остались вопросы? {" "}
+                                            <a href="#faq" className="font-bold underline">
+                                                Посмотрите частые вопросы ниже
+                                            </a>
+                                            .
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={handleEditResponses}
+                                            className="font-caveat font-bold text-lg text-foreground underline mt-4"
+                                            style={{background: "transparent", border: 0, cursor: "pointer"}}
+                                        >
+                                            {form.attending === "Да, буду!"
+                                                ? "Изменить ответы"
+                                                : "Заполнить анкету ещё раз"}
+                                        </button>
                                     </div>
                                 </FlightBanner>
                             </div>
@@ -894,76 +965,84 @@ export default function App() {
                                 </div>
                             </FormField>
 
-                            {/* Alcohol */}
-                            <FormField
-                                label="Что вы предпочитаете в качестве напитков?"
-                                error={validationAttempted && form.alcohol.length === 0}
-                            >
-                                <div className="flex flex-col gap-2 mt-1">
-                                    {CONFIG.form.alcoholOptions.map((opt) => (
-                                        <CheckboxOption
-                                            key={opt}
-                                            label={opt}
-                                            checked={form.alcohol.includes(opt)}
-                                            onChange={() => handleAlcohol(opt)}
-                                        />
-                                    ))}
-                                </div>
-                            </FormField>
-
-                            {/* Main course */}
-                            <FormField
-                                label="Что бы вы предпочли в качестве горячего?"
-                                error={validationAttempted && form.mainCourse.length === 0}
-                            >
-                                <div className="flex flex-col gap-2 mt-1">
-                                    {CONFIG.form.mainCourseOptions.map((opt) => (
-                                        <RadioOption
-                                            key={opt}
-                                            label={opt}
-                                            checked={form.mainCourse === opt}
-                                            onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
-                                        />
-                                    ))}
-                                </div>
-                            </FormField>
-
-                            {/* Transfer */}
-                            <FormField
-                                label="Потребуется ли вам трансфер?"
-                                error={validationAttempted && form.transfer.length === 0}
-                            >
-                                <div className="flex flex-col gap-2 mt-1">
-                                    {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
-                                        <RadioOption
-                                            key={opt}
-                                            label={opt}
-                                            checked={form.transfer === opt}
-                                            onChange={() => setForm((f) => ({...f, transfer: opt}))}
-                                        />
-                                    ))}
-                                </div>
-                            </FormField>
-
-                            {/* Hosting help */}
-                            <FormField
-                                label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?"
-                                error={validationAttempted && form.hostingHelp.length === 0}
-                            >
-                                <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
-                                    От вас потребуется сказать несколько фраз по сценарию, либо провести какую-то активность
+                            {isDeclining ? (
+                                <p className="font-caveat text-xl text-center text-foreground opacity-75 mt-5">
+                                    Остальные вопросы можно пропустить.
                                 </p>
-                                <div className="flex flex-col gap-2 mt-1">
-                                    {["Да", "Нет"].map((opt) => (
-                                        <RadioOption
-                                            key={opt}
-                                            label={opt}
-                                            checked={form.hostingHelp === opt}
-                                            onChange={() => setForm((f) => ({...f, hostingHelp: opt}))}
-                                        />
-                                    ))}
-                                </div>
-                            </FormField>
+                            ) : (
+                                <>
+                                    {/* Alcohol */}
+                                    <FormField
+                                        label="Что вы предпочитаете в качестве напитков?"
+                                        error={validationAttempted && form.alcohol.length === 0}
+                                    >
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            {CONFIG.form.alcoholOptions.map((opt) => (
+                                                <CheckboxOption
+                                                    key={opt}
+                                                    label={opt}
+                                                    checked={form.alcohol.includes(opt)}
+                                                    onChange={() => handleAlcohol(opt)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormField>
+
+                                    {/* Main course */}
+                                    <FormField
+                                        label="Что бы вы предпочли в качестве горячего?"
+                                        error={validationAttempted && form.mainCourse.length === 0}
+                                    >
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            {CONFIG.form.mainCourseOptions.map((opt) => (
+                                                <RadioOption
+                                                    key={opt}
+                                                    label={opt}
+                                                    checked={form.mainCourse === opt}
+                                                    onChange={() => setForm((f) => ({...f, mainCourse: opt}))}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormField>
+
+                                    {/* Transfer */}
+                                    <FormField
+                                        label="Потребуется ли вам трансфер?"
+                                        error={validationAttempted && form.transfer.length === 0}
+                                    >
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            {["Да, нужен", "Нет, доберусь сам(а)"].map((opt) => (
+                                                <RadioOption
+                                                    key={opt}
+                                                    label={opt}
+                                                    checked={form.transfer === opt}
+                                                    onChange={() => setForm((f) => ({...f, transfer: opt}))}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormField>
+
+                                    {/* Hosting help */}
+                                    <FormField
+                                        label="Хотите ли вы помочь нам в проведении мероприятия и стать одним из ведущих?"
+                                        error={validationAttempted && form.hostingHelp.length === 0}
+                                    >
+                                        <p className="font-caveat text-lg text-foreground opacity-70 leading-snug mt-1 mb-3">
+                                            От вас потребуется сказать несколько фраз по сценарию, либо провести какую-то активность
+                                        </p>
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            {["Да", "Нет"].map((opt) => (
+                                                <RadioOption
+                                                    key={opt}
+                                                    label={opt}
+                                                    checked={form.hostingHelp === opt}
+                                                    onChange={() => setForm((f) => ({...f, hostingHelp: opt}))}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormField>
+                                </>
+                            )}
 
                             <button
                                 type="submit"
@@ -1034,7 +1113,7 @@ export default function App() {
 
                 <WaveDivider/>
 
-                {/* ── 5. ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ─────────────────────────────────────── */}
+                {/* ── 4. ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ─────────────────────────────────────── */}
                 <Section id="faq" className="pb-16">
                     <SectionTitle>Часто задаваемые вопросы</SectionTitle>
                     <FlightBannerStack>
@@ -1063,7 +1142,7 @@ export default function App() {
 
                 <WaveDivider/>
 
-                {/* ── 6. ТАЙМЕР ───────────────────────────────────────────────────────── */}
+                {/* ── 5. ТАЙМЕР ───────────────────────────────────────────────────────── */}
                 <Section id="zagsCountdown" className="pb-0">
                     <SectionTitle>До загса осталось</SectionTitle>
                     <FlightBannerStack>
@@ -1140,7 +1219,7 @@ export default function App() {
 
                 <WaveDivider/>
 
-                {/* ── 7. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
+                {/* ── 6. ФИНАЛЬНЫЙ СЛАЙД ───────────────────────────────────────────────── */}
                 <section
                     className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
                 >
