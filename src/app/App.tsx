@@ -494,11 +494,27 @@ type SubmitPhase = "idle" | "submitting" | "success";
 
 const preloadImage = (src: string) => new Promise<void>((resolve) => {
     const image = new window.Image();
-    image.onload = () => resolve();
+    let settled = false;
+
+    const finish = async () => {
+        if (settled) return;
+        settled = true;
+
+        try {
+            await image.decode();
+        } catch {
+            // A completed image can still reject decode() in some browsers.
+            // The DOM instance will use the already downloaded resource.
+        }
+
+        resolve();
+    };
+
+    image.onload = () => void finish();
     image.onerror = () => resolve();
     image.src = src;
 
-    if (image.complete) resolve();
+    if (image.complete) void finish();
 });
 
 export default function App() {
@@ -542,12 +558,14 @@ export default function App() {
         const remainingTexture = preferredTexture === gardenTexture
             ? gardenTextureDesktop
             : gardenTexture;
-        const imageQueue = [
+        const criticalImages = [
             toyAirplane,
             preferredTexture,
+        ];
+        const remainingImages = [
+            titleCloud,
             groomPhoto,
             bridePhoto,
-            titleCloud,
             cloudHeartDivider,
             couplePhoto,
             remainingTexture,
@@ -579,24 +597,74 @@ export default function App() {
             hideTimer = window.setTimeout(releasePage, Math.max(0, minimumLoaderDuration - elapsed));
         };
 
+        const requestImages = (sources: string[]) => {
+            setRequestedImages((current) => {
+                const next = new Set(current);
+                sources.forEach((src) => next.add(src));
+                return next;
+            });
+        };
+
+        const waitForPaint = () => new Promise<void>((resolve) => {
+            window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+        });
+
+        const decodeRenderedImages = async (sources: string[]) => {
+            const sourceUrls = new Set(sources.map((src) => new URL(src, window.location.href).href));
+            const images = Array.from(document.images).filter((image) => (
+                sourceUrls.has(image.currentSrc || image.src)
+            ));
+
+            await Promise.all(images.map(async (image) => {
+                if (!image.complete) {
+                    await new Promise<void>((resolve) => {
+                        image.addEventListener("load", () => resolve(), {once: true});
+                        image.addEventListener("error", () => resolve(), {once: true});
+                    });
+                }
+
+                try {
+                    await image.decode();
+                } catch {
+                    // The failsafe still releases the page if a browser cannot
+                    // decode one of the otherwise completed DOM images.
+                }
+            }));
+        };
+
         const loadImagesInOrder = async () => {
-            for (const [index, src] of imageQueue.entries()) {
+            for (const src of criticalImages) {
+                requestImages([src]);
+
+                // Start each critical request only after the previous resource
+                // has loaded and decoded: plane first, then the active texture.
+                await waitForPaint();
                 if (cancelled) return;
 
-                setRequestedImages((current) => {
-                    if (current.has(src)) return current;
+                if (src === toyAirplane) {
+                    await decodeRenderedImages([toyAirplane]);
+                } else {
+                    await preloadImage(src);
+                }
 
-                    const next = new Set(current);
-                    next.add(src);
-                    return next;
-                });
+                if (cancelled) return;
+            }
+
+            // The loader background is fractionally translucent, which prevents
+            // the browser from skipping paint work for the fully covered page.
+            await waitForPaint();
+            if (cancelled) return;
+            finishLoading();
+
+            for (const src of remainingImages) {
+                if (cancelled) return;
+
+                requestImages([src]);
 
                 // Let React put the current source into the DOM before waiting
                 // for the download, so the browser can paint it progressively.
                 await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
                 if (cancelled) return;
-
-                if (index === 0) finishLoading();
 
                 await preloadImage(src);
                 if (cancelled) return;
