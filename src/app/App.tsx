@@ -1278,7 +1278,7 @@ export default function App() {
                     className="w-full max-w-lg mx-auto px-6 py-14 flex flex-col items-center"
                 >
                     {/* Top text */}
-                    <div className="self-start flex items-start mb-2">
+                    <div className="flex items-start justify-center mb-2">
                         <FlightBanner rotate={-1} maxWidth={270} padding="12px 18px 13px">
                             <p style={{
                                 fontFamily: "'Montserrat', sans-serif",
