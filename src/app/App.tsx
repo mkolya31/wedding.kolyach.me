@@ -10,12 +10,12 @@ import toyAirplane from "@/imports/toy-airplane-detailed.png";
 import titleCloud from "@/imports/title-cloud.png";
 import cloudHeartDivider from "@/imports/cloud-heart-divider.png";
 
-const LoadedImagesContext = createContext<ReadonlySet<string>>(new Set());
+const RequestedImagesContext = createContext<ReadonlySet<string>>(new Set());
 
 const QueuedImage = ({src, ...props}: React.ImgHTMLAttributes<HTMLImageElement> & { src: string }) => {
-    const loadedImages = useContext(LoadedImagesContext);
+    const requestedImages = useContext(RequestedImagesContext);
 
-    return <img src={loadedImages.has(src) ? src : undefined} {...props}/>;
+    return <img src={requestedImages.has(src) ? src : undefined} {...props}/>;
 };
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
@@ -506,7 +506,7 @@ export default function App() {
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
     const backgroundRef = useRef<HTMLDivElement | null>(null);
     const successMessageRef = useRef<HTMLDivElement | null>(null);
-    const [loadedImages, setLoadedImages] = useState<ReadonlySet<string>>(() => new Set());
+    const [requestedImages, setRequestedImages] = useState<ReadonlySet<string>>(() => new Set());
 
     const [form, setForm] = useState<FormData>({
         name: "",
@@ -574,28 +574,33 @@ export default function App() {
                 removeTimer = window.setTimeout(() => loader.remove(), 450);
             };
 
-            const minimumLoaderDuration = 1000;
+            const minimumLoaderDuration = 400;
             const elapsed = window.performance.now() - startedAt;
             hideTimer = window.setTimeout(releasePage, Math.max(0, minimumLoaderDuration - elapsed));
         };
 
         const loadImagesInOrder = async () => {
-            for (const src of imageQueue) {
+            for (const [index, src] of imageQueue.entries()) {
                 if (cancelled) return;
 
-                await preloadImage(src);
-                if (cancelled) return;
-
-                setLoadedImages((current) => {
+                setRequestedImages((current) => {
                     if (current.has(src)) return current;
 
                     const next = new Set(current);
                     next.add(src);
                     return next;
                 });
-            }
 
-            finishLoading();
+                // Let React put the current source into the DOM before waiting
+                // for the download, so the browser can paint it progressively.
+                await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+                if (cancelled) return;
+
+                if (index === 0) finishLoading();
+
+                await preloadImage(src);
+                if (cancelled) return;
+            }
         };
 
         void loadImagesInOrder();
@@ -702,7 +707,7 @@ export default function App() {
     };
 
     return (
-        <LoadedImagesContext.Provider value={loadedImages}>
+        <RequestedImagesContext.Provider value={requestedImages}>
             <div
                 className="min-h-screen w-full relative overflow-hidden"
                 style={{
@@ -722,7 +727,7 @@ export default function App() {
                 <div
                     className="absolute inset-0 md:hidden"
                     style={{
-                        backgroundImage: loadedImages.has(gardenTexture) ? `url(${gardenTexture})` : undefined,
+                        backgroundImage: requestedImages.has(gardenTexture) ? `url(${gardenTexture})` : undefined,
                         backgroundPosition: "top center",
                         backgroundRepeat: "repeat",
                         backgroundSize: "390px auto",
@@ -731,7 +736,7 @@ export default function App() {
                 <div
                     className="absolute inset-0 hidden md:block"
                     style={{
-                        backgroundImage: loadedImages.has(gardenTextureDesktop) ? `url(${gardenTextureDesktop})` : undefined,
+                        backgroundImage: requestedImages.has(gardenTextureDesktop) ? `url(${gardenTextureDesktop})` : undefined,
                         backgroundPosition: "top center",
                         backgroundRepeat: "repeat",
                         backgroundSize: "390px auto",
@@ -762,7 +767,7 @@ export default function App() {
                                 }}
                             >
                                 <ImageWithFallback
-                                    src={loadedImages.has(groomPhoto) ? groomPhoto : undefined}
+                                    src={requestedImages.has(groomPhoto) ? groomPhoto : undefined}
                                     alt="Жених в детстве"
                                     style={{
                                         width: "100%",
@@ -788,7 +793,7 @@ export default function App() {
                                 }}
                             >
                                 <ImageWithFallback
-                                    src={loadedImages.has(bridePhoto) ? bridePhoto : undefined}
+                                    src={requestedImages.has(bridePhoto) ? bridePhoto : undefined}
                                     alt="Невеста в детстве"
                                     style={{
                                         width: "100%",
@@ -1380,7 +1385,7 @@ export default function App() {
                             }}
                         >
                             <ImageWithFallback
-                                src={loadedImages.has(couplePhoto) ? couplePhoto : undefined}
+                                src={requestedImages.has(couplePhoto) ? couplePhoto : undefined}
                                 alt="Максим и Анфиса"
                                 style={{width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block"}}
                             />
@@ -1407,7 +1412,7 @@ export default function App() {
                 </footer>
             </div>
             </div>
-        </LoadedImagesContext.Provider>
+        </RequestedImagesContext.Provider>
     );
 }
 
