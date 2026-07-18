@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT || 3000);
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 const RSVP_SECRET = process.env.RSVP_SECRET;
+const APPS_SCRIPT_REQUEST_TIMEOUT_MS = 15_000;
 
 if (!APPS_SCRIPT_URL) {
     throw new Error('APPS_SCRIPT_URL env variable is required');
@@ -76,23 +77,32 @@ app.post('/api/rsvp', rsvpLimiter, async (req, res) => {
             return res.json({ ok: true });
         }
 
-        const appsScriptResponse = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                secret: RSVP_SECRET,
-                name: data.name,
-                i_will_come: data.i_will_come,
-                alcohol: data.alcohol,
-                meal: data.meal,
-                need_transfer: data.need_transfer,
-                hosting_help: data.hosting_help
-            })
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), APPS_SCRIPT_REQUEST_TIMEOUT_MS);
+        let appsScriptResponse: Response;
+        let responseText: string;
 
-        const responseText = await appsScriptResponse.text();
+        try {
+            appsScriptResponse = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    secret: RSVP_SECRET,
+                    name: data.name,
+                    i_will_come: data.i_will_come,
+                    alcohol: data.alcohol,
+                    meal: data.meal,
+                    need_transfer: data.need_transfer,
+                    hosting_help: data.hosting_help
+                }),
+                signal: controller.signal
+            });
+            responseText = await appsScriptResponse.text();
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         let responseData: AppsScriptResponse;
 
