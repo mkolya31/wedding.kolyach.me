@@ -1,4 +1,4 @@
-import {Children, useState, useEffect, useRef} from "react";
+import {Children, createContext, useContext, useState, useEffect, useRef} from "react";
 import {ImageWithFallback} from "@/app/components/figma/ImageWithFallback";
 import {submitRsvp} from "@/api/rsvp";
 import groomPhoto from "@/imports/groom.jpg";
@@ -9,6 +9,14 @@ import gardenTextureDesktop from "@/imports/garden-texture-desktop.png";
 import toyAirplane from "@/imports/toy-airplane-detailed.png";
 import titleCloud from "@/imports/title-cloud.png";
 import cloudHeartDivider from "@/imports/cloud-heart-divider.png";
+
+const RequestedImagesContext = createContext<ReadonlySet<string>>(new Set());
+
+const QueuedImage = ({src, ...props}: React.ImgHTMLAttributes<HTMLImageElement> & { src: string }) => {
+    const requestedImages = useContext(RequestedImagesContext);
+
+    return <img src={requestedImages.has(src) ? src : undefined} {...props}/>;
+};
 
 // ─── НАСТРОЙКИ САЙТА — редактируйте здесь ────────────────────────────────────
 const CONFIG = {
@@ -241,7 +249,7 @@ const CloudTitle = ({
             zIndex: 0,
         }}
     >
-        <img
+        <QueuedImage
             src={titleCloud}
             alt=""
             aria-hidden="true"
@@ -387,7 +395,7 @@ const FlightBannerStack = ({
 
 const HeroFlightBanner = ({names}: { names: string }) => (
     <div className="relative flex w-full flex-col items-center select-none" style={{marginTop: 4}}>
-        <img
+        <QueuedImage
             src={toyAirplane}
             alt=""
             aria-hidden="true"
@@ -459,7 +467,7 @@ const DividerImage = ({
     className?: string;
 }) => (
     <div className={`flex w-full justify-center overflow-visible ${className}`} aria-hidden="true">
-        <img
+        <QueuedImage
             src={cloudHeartDivider}
             alt=""
             className="block h-auto max-w-full select-none"
@@ -498,6 +506,7 @@ export default function App() {
     const weddingCountdown = useCountdown(CONFIG.weddingDate);
     const backgroundRef = useRef<HTMLDivElement | null>(null);
     const successMessageRef = useRef<HTMLDivElement | null>(null);
+    const [requestedImages, setRequestedImages] = useState<ReadonlySet<string>>(() => new Set());
 
     const [form, setForm] = useState<FormData>({
         name: "",
@@ -526,14 +535,25 @@ export default function App() {
 
     useEffect(() => {
         const loader = document.getElementById("page-loader");
-        if (!loader) return;
-
-        const startedAt = Number(loader.dataset.startedAt) || window.performance.now();
+        const startedAt = Number(loader?.dataset.startedAt) || window.performance.now();
         const preferredTexture = window.matchMedia("(min-width: 768px)").matches
             ? gardenTextureDesktop
             : gardenTexture;
-        const criticalImages = [preferredTexture, toyAirplane, titleCloud, groomPhoto, bridePhoto];
+        const remainingTexture = preferredTexture === gardenTexture
+            ? gardenTextureDesktop
+            : gardenTexture;
+        const imageQueue = [
+            toyAirplane,
+            preferredTexture,
+            groomPhoto,
+            bridePhoto,
+            titleCloud,
+            cloudHeartDivider,
+            couplePhoto,
+            remainingTexture,
+        ];
         let finished = false;
+        let cancelled = false;
         let hideTimer = 0;
         let removeTimer = 0;
 
@@ -543,6 +563,7 @@ export default function App() {
 
             const releasePage = () => {
                 document.documentElement.classList.remove("page-is-loading");
+                if (!loader) return;
 
                 if (!loader.classList.contains("is-visible")) {
                     loader.remove();
@@ -553,15 +574,40 @@ export default function App() {
                 removeTimer = window.setTimeout(() => loader.remove(), 450);
             };
 
-            const minimumLoaderDuration = 1000;
+            const minimumLoaderDuration = 400;
             const elapsed = window.performance.now() - startedAt;
             hideTimer = window.setTimeout(releasePage, Math.max(0, minimumLoaderDuration - elapsed));
         };
 
-        void Promise.all(criticalImages.map(preloadImage)).then(finishLoading);
+        const loadImagesInOrder = async () => {
+            for (const [index, src] of imageQueue.entries()) {
+                if (cancelled) return;
+
+                setRequestedImages((current) => {
+                    if (current.has(src)) return current;
+
+                    const next = new Set(current);
+                    next.add(src);
+                    return next;
+                });
+
+                // Let React put the current source into the DOM before waiting
+                // for the download, so the browser can paint it progressively.
+                await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+                if (cancelled) return;
+
+                if (index === 0) finishLoading();
+
+                await preloadImage(src);
+                if (cancelled) return;
+            }
+        };
+
+        void loadImagesInOrder();
         const failsafeTimer = window.setTimeout(finishLoading, 10000);
 
         return () => {
+            cancelled = true;
             window.clearTimeout(failsafeTimer);
             window.clearTimeout(hideTimer);
             window.clearTimeout(removeTimer);
@@ -661,14 +707,15 @@ export default function App() {
     };
 
     return (
-        <div
-            className="min-h-screen w-full relative overflow-hidden"
-            style={{
-                backgroundColor: "#F9EDD9",
-                fontFamily: "'Montserrat', sans-serif",
-                isolation: "isolate",
-            }}
-        >
+        <RequestedImagesContext.Provider value={requestedImages}>
+            <div
+                className="min-h-screen w-full relative overflow-hidden"
+                style={{
+                    backgroundColor: "#F9EDD9",
+                    fontFamily: "'Montserrat', sans-serif",
+                    isolation: "isolate",
+                }}
+            >
             <div
                 ref={backgroundRef}
                 className="absolute inset-0 pointer-events-none"
@@ -680,7 +727,7 @@ export default function App() {
                 <div
                     className="absolute inset-0 md:hidden"
                     style={{
-                        backgroundImage: `url(${gardenTexture})`,
+                        backgroundImage: requestedImages.has(gardenTexture) ? `url(${gardenTexture})` : undefined,
                         backgroundPosition: "top center",
                         backgroundRepeat: "repeat",
                         backgroundSize: "390px auto",
@@ -689,7 +736,7 @@ export default function App() {
                 <div
                     className="absolute inset-0 hidden md:block"
                     style={{
-                        backgroundImage: `url(${gardenTextureDesktop})`,
+                        backgroundImage: requestedImages.has(gardenTextureDesktop) ? `url(${gardenTextureDesktop})` : undefined,
                         backgroundPosition: "top center",
                         backgroundRepeat: "repeat",
                         backgroundSize: "390px auto",
@@ -720,7 +767,7 @@ export default function App() {
                                 }}
                             >
                                 <ImageWithFallback
-                                    src={groomPhoto}
+                                    src={requestedImages.has(groomPhoto) ? groomPhoto : undefined}
                                     alt="Жених в детстве"
                                     style={{
                                         width: "100%",
@@ -746,7 +793,7 @@ export default function App() {
                                 }}
                             >
                                 <ImageWithFallback
-                                    src={bridePhoto}
+                                    src={requestedImages.has(bridePhoto) ? bridePhoto : undefined}
                                     alt="Невеста в детстве"
                                     style={{
                                         width: "100%",
@@ -1338,7 +1385,7 @@ export default function App() {
                             }}
                         >
                             <ImageWithFallback
-                                src={couplePhoto}
+                                src={requestedImages.has(couplePhoto) ? couplePhoto : undefined}
                                 alt="Максим и Анфиса"
                                 style={{width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block"}}
                             />
@@ -1364,7 +1411,8 @@ export default function App() {
                     </p>
                 </footer>
             </div>
-        </div>
+            </div>
+        </RequestedImagesContext.Provider>
     );
 }
 
