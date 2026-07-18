@@ -561,9 +561,9 @@ export default function App() {
         const criticalImages = [
             toyAirplane,
             preferredTexture,
-            titleCloud,
         ];
         const remainingImages = [
+            titleCloud,
             groomPhoto,
             bridePhoto,
             cloudHeartDivider,
@@ -633,18 +633,22 @@ export default function App() {
         };
 
         const loadImagesInOrder = async () => {
-            requestImages(criticalImages);
+            for (const src of criticalImages) {
+                requestImages([src]);
 
-            // Wait until React has mounted the real image elements, then decode
-            // those exact DOM instances. The texture is a CSS background, so it
-            // is decoded through a dedicated Image object.
-            await waitForPaint();
-            if (cancelled) return;
-            await Promise.all([
-                decodeRenderedImages([toyAirplane, titleCloud]),
-                preloadImage(preferredTexture),
-            ]);
-            if (cancelled) return;
+                // Start each critical request only after the previous resource
+                // has loaded and decoded: plane first, then the active texture.
+                await waitForPaint();
+                if (cancelled) return;
+
+                if (src === toyAirplane) {
+                    await decodeRenderedImages([toyAirplane]);
+                } else {
+                    await preloadImage(src);
+                }
+
+                if (cancelled) return;
+            }
 
             // The loader background is fractionally translucent, which prevents
             // the browser from skipping paint work for the fully covered page.
