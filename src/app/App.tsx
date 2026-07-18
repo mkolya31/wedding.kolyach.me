@@ -77,30 +77,8 @@ const CONFIG = {
 
 const FAQ_ITEMS = [
     {
-        question: "Где можно задать вопрос?",
-        answer: (
-            <>
-                Если не нашли ответ ниже, напишите в общем чате. Выберите удобный мессенджер: {" "}
-                <a
-                    href={CONFIG.chats.telegramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold underline"
-                >
-                    Telegram
-                </a>{" "}
-                или {" "}
-                <a
-                    href={CONFIG.chats.maxUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold underline"
-                >
-                    MAX
-                </a>
-                .
-            </>
-        ),
+        question: "Что делать, если я хочу изменить свой ответ в анкете",
+        answer: "Просто заполните форму ещё раз",
     },
     {
         question: "Будет ли дресскод на свадьбе?",
@@ -164,12 +142,34 @@ const FAQ_ITEMS = [
         answer: "К сожалению, нет, так как ресторан находится на территории музея-заповедника.",
     },
     {
-        question: "Что делать, если я хочу изменить свой ответ в анкете",
-        answer: "Просто заполните форму ещё раз",
-    },
-    {
         question: "Что же вам подарить?",
         answer: "Мы вложили очень много средств и сил на этот праздник, поэтому лучший подарок для нас - это конвертик.",
+    },
+    {
+        question: "Где можно задать вопрос?",
+        answer: (
+            <>
+                Если не нашли ответ выше, напишите в общем чате. Выберите удобный мессенджер: {" "}
+                <a
+                    href={CONFIG.chats.telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    Telegram
+                </a>{" "}
+                или {" "}
+                <a
+                    href={CONFIG.chats.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline"
+                >
+                    MAX
+                </a>
+                .
+            </>
+        ),
     },
 ];
 
